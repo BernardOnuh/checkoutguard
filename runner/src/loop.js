@@ -144,15 +144,17 @@ export async function repair(failureId, { onProgress = () => {} } = {}) {
   git(worktree, "add", "-A", "--", "store/src");
   git(worktree, "-c", "user.name=CheckoutGuard", "-c", "user.email=checkoutguard@localhost", "commit", "-q", "-m", `CheckoutGuard repair for ${sc.id} (attempt ${attemptNo})\n\nFailure: ${failure.step}\nExpected ${failure.expected}, got ${failure.actual}`);
 
-  // 2. Unit checks.
+  // 2. Unit checks: no test that passed before may fail now, and at least one failing test must now pass.
+  // (Other seeded bugs can still be failing, so "all green" isn't the bar; the journey rerun is the verdict.)
   onProgress("unit");
-  const unit = await new Promise(r => {
-    const p = spawn(process.execPath, ["--test", "test/"], { cwd: join(worktree, "store"), stdio: ["ignore", "pipe", "pipe"], timeout: 120_000 });
-    let out = ""; p.stdout.on("data", d => (out += d)); p.stderr.on("data", d => (out += d));
-    p.on("close", code => r({ ok: code === 0, out }));
-  });
-  set({ unit_log: unit.out.slice(-20000) });
-  if (!unit.ok) return finish("unit_failed");
+  const before = await unitResults(ROOT);
+  const after = await unitResults(worktree);
+  const broke = [...after.failed].filter(t => before.passed.has(t));
+  const fixed = [...after.passed].filter(t => before.failed.has(t));
+  const summary = `Unit checks: ${after.passed.size} passing, ${after.failed.size} failing.` +
+    `\nNewly passing: ${fixed.length ? fixed.join("; ") : "none"}\nNewly failing: ${broke.length ? broke.join("; ") : "none"}`;
+  set({ unit_log: (summary + "\n\n" + after.out).slice(-20000) });
+  if (broke.length || !fixed.length) return finish("unit_failed", broke.length ? `The patch broke: ${broke.join("; ")}` : "No failing unit test started passing.");
 
   // 3. Rerun the same journey against the patched store.
   onProgress("retest");
@@ -190,6 +192,22 @@ export function discard(attemptId) {
 
 function removeWorktree(a) {
   if (existsSync(a.worktree)) git(ROOT, "worktree", "remove", "--force", a.worktree);
+}
+
+/** Runs the store's unit tests in a checkout and returns which test names passed and failed. */
+function unitResults(dir) {
+  return new Promise(r => {
+    const p = spawn(process.execPath, ["--test", "--test-reporter=tap", "test/"], { cwd: join(dir, "store"), stdio: ["ignore", "pipe", "pipe"], timeout: 120_000 });
+    let out = ""; p.stdout.on("data", d => (out += d)); p.stderr.on("data", d => (out += d));
+    p.on("close", () => {
+      const passed = new Set(), failed = new Set();
+      for (const m of out.matchAll(/^\s*(not ok|ok) \d+ - (.+)$/gm)) {
+        if (/\.test\.js$|^test\//.test(m[2])) continue; // file-level summary lines
+        (m[1] === "ok" ? passed : failed).add(m[2].trim());
+      }
+      r({ passed, failed, out });
+    });
+  });
 }
 
 export const relativeToRoot = p => relative(ROOT, p);
