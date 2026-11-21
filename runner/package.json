@@ -1,0 +1,9 @@
+{
+  "name": "checkoutguard-runner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local CheckoutGuard runner: browser tests, failure parsing, isolated agent repair, retest. Never exposed as a public endpoint.",
+  "type": "module",
+  "engines": { "node": ">=22.5" },
+  "bin": { "cg": "src/cli.js" }
+}
