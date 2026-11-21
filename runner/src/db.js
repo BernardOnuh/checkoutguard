@@ -2,10 +2,12 @@
 // Project → TestRun → Failure → RepairAttempt → Verification.
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { randomBytes } from "node:crypto";
 
-export const ROOT = new URL("../..", import.meta.url).pathname.replace(/\/$/, "");
+// The repository root, two folders up from this file. CG_ROOT overrides it (e.g. when bundled into the dashboard).
+export const ROOT = process.env.CG_ROOT || resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 export const DATA_DIR = process.env.CG_DATA_DIR || join(ROOT, "data");
 const FILE = join(DATA_DIR, "checkoutguard.db");
 mkdirSync(dirname(FILE), { recursive: true });
