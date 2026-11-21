@@ -4,6 +4,13 @@
   "private": true,
   "description": "Local CheckoutGuard runner: browser tests, failure parsing, isolated agent repair, retest. Never exposed as a public endpoint.",
   "type": "module",
-  "engines": { "node": ">=22.5" },
-  "bin": { "cg": "src/cli.js" }
+  "engines": {
+    "node": ">=22.5"
+  },
+  "bin": {
+    "cg": "src/cli.js"
+  },
+  "scripts": {
+    "test": "node --test test/"
+  }
 }

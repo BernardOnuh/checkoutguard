@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Bot, CheckCircle2, CircleDashed, FlaskConical, GitMerge, PlayCircle, ShieldCheck, Trash2, XCircle } from "lucide-react";
+import { ArrowLeft, Bot, Download, CheckCircle2, CircleDashed, FlaskConical, GitMerge, PlayCircle, ShieldCheck, Trash2, XCircle } from "lucide-react";
 import { runner } from "@/lib/runner";
 import { ActionButton, LiveRefresh } from "@/components/actions";
 import { Diff, Pill, TesterTag, evidenceUrl, when } from "@/components/ui";
@@ -39,7 +39,10 @@ export default async function RepairPage({ params }: { params: Promise<{ id: str
           <h1 className="mt-1 text-2xl font-extrabold tracking-tight">{sc?.title ?? original.scenario}</h1>
           <p className="mono mt-1 text-mute">{a.branch} · started {when(a.created_at)}</p>
         </div>
-        <Pill status={s} />
+        <div className="flex items-center gap-2">
+          {s !== "running" && <a href={`/api/report?id=${a.id}`} className="btn-ghost !py-1.5 text-xs"><Download className="h-3.5 w-3.5" />Report</a>}
+          <Pill status={s} />
+        </div>
       </div>
 
       <section className="card">

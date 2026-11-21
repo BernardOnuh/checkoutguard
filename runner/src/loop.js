@@ -20,6 +20,11 @@ export const scenarios = () => readdirSync(join(ROOT, "scenarios")).filter(f => 
   .map(f => JSON.parse(readFileSync(join(ROOT, "scenarios", f), "utf8")));
 export const scenario = id => scenarios().find(s => s.id === id) ?? (() => { throw new Error(`Unknown scenario ${id}`); })();
 
+// A repair still "running" after an hour means the runner stopped mid-way (crash, restart). Mark it so it
+// doesn't look alive forever; its worktree is kept for inspection until discarded.
+db.prepare(`UPDATE repair_attempts SET status = 'agent_failed', finished_at = ?, agent_log = agent_log || char(10) || '[CheckoutGuard] Interrupted: the runner stopped before this attempt finished.'
+            WHERE status = 'running' AND created_at < ?`).run(now(), new Date(Date.now() - 3600_000).toISOString());
+
 export function ensureProject() {
   const p = db.prepare("SELECT * FROM projects LIMIT 1").get();
   if (p) return p;
@@ -154,6 +159,7 @@ export async function repair(failureId, { onProgress = () => {} } = {}) {
   const summary = `Unit checks: ${after.passed.size} passing, ${after.failed.size} failing.` +
     `\nNewly passing: ${fixed.length ? fixed.join("; ") : "none"}\nNewly failing: ${broke.length ? broke.join("; ") : "none"}`;
   set({ unit_log: (summary + "\n\n" + after.out).slice(-20000) });
+  if (!after.passed.size && !after.failed.size) return finish("unit_failed", "The unit tests didn't run (no results were reported).");
   if (broke.length || !fixed.length) return finish("unit_failed", broke.length ? `The patch broke: ${broke.join("; ")}` : "No failing unit test started passing.");
 
   // 3. Rerun the same journey against the patched store.
@@ -197,7 +203,10 @@ function removeWorktree(a) {
 /** Runs the store's unit tests in a checkout and returns which test names passed and failed. */
 function unitResults(dir) {
   return new Promise(r => {
-    const p = spawn(process.execPath, ["--test", "--test-reporter=tap", "test/"], { cwd: join(dir, "store"), stdio: ["ignore", "pipe", "pipe"], timeout: 120_000 });
+    // NODE_TEST_CONTEXT is set when CheckoutGuard itself runs under node --test (e.g. in CI); passing it on would make
+    // the store's tests silently skip, so they'd count as neither passing nor failing.
+    const { NODE_TEST_CONTEXT, ...env } = process.env;
+    const p = spawn(process.execPath, ["--test", "--test-reporter=tap", "test/"], { cwd: join(dir, "store"), env, stdio: ["ignore", "pipe", "pipe"], timeout: 120_000 });
     let out = ""; p.stdout.on("data", d => (out += d)); p.stderr.on("data", d => (out += d));
     p.on("close", () => {
       const passed = new Set(), failed = new Set();

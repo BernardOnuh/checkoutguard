@@ -47,8 +47,13 @@ cd dashboard && npm install && npm run dev   # dashboard on http://127.0.0.1:310
 node runner/src/cli.js test all
 node runner/src/cli.js repair <failureId>
 node runner/src/cli.js approve <attemptId>     # or: discard <attemptId>
+node runner/src/cli.js report <attemptId>      # self-contained HTML repair report
 node runner/src/cli.js status
+
+cd runner && npm test                          # the loop's guarantees, on a throwaway clone (no AI calls)
 ```
+
+More: [architecture](docs/ARCHITECTURE.md) · [demo script](docs/DEMO.md)
 
 The dashboard and runner only accept requests from this machine. The runner runs code and git commands, so it is never exposed publicly.
 
