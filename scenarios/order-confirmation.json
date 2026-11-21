@@ -1,0 +1,18 @@
+{
+  "id": "order-confirmation",
+  "title": "Placing an order shows the confirmation",
+  "objective": "Open the store, add the Logo Cap to the cart, go to checkout, fill in name 'Ada Lovelace', email 'ada@example.com' and the test card 4242 4242 4242 4242, then place the order. The confirmation page must thank the customer and show an order number like ORD-1A2B3C.",
+  "steps": [
+    "Open the store home page",
+    "Click 'Add to cart' on the Logo Cap",
+    "Click Checkout",
+    "Fill in Full name, Email and Card number with the test card 4242 4242 4242 4242",
+    "Click 'Place order'",
+    "Read the confirmation page"
+  ],
+  "expect": [
+    { "check": "A thank-you heading is shown", "selector": "[data-testid=confirmation]", "contains": "Thank you" },
+    { "check": "An order number like ORD-XXXXXX is shown", "selector": "[data-testid=order-id]", "matches": "^ORD-[0-9A-F]{6}$" }
+  ],
+  "seededBug": "the confirmation page reads ?id= but checkout redirects with ?order="
+}

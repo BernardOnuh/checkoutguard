@@ -1,0 +1,12 @@
+{
+  "name": "checkoutguard-demo-store",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Demo storefront for CheckoutGuard: cart, coupon, checkout form and confirmation, with seeded checkout bugs",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/"
+  }
+}
