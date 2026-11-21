@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Bot, Download, CheckCircle2, CircleDashed, FlaskConical, GitMerge, PlayCircle, ShieldCheck, Trash2, XCircle } from "lucide-react";
 import { runner } from "@/lib/runner";
 import { ActionButton, LiveRefresh } from "@/components/actions";
-import { Diff, Pill, TesterTag, evidenceUrl, when } from "@/components/ui";
+import { BrowserShot, Diff, Pill, TesterTag, evidenceUrl, when } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -32,11 +32,11 @@ export default async function RepairPage({ params }: { params: Promise<{ id: str
   return (
     <div className="space-y-6">
       <LiveRefresh active={s === "running"} />
-      <Link href={`/runs/${original.id}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-mute hover:text-ink"><ArrowLeft className="h-4 w-4" />Failed run</Link>
+      <Link href={`/runs/${original.id}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-mute transition hover:text-ink"><ArrowLeft className="h-4 w-4" />Failed run</Link>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="eyebrow text-guard">Repair record · attempt {a.attempt} of {runner.maxAttempts}</p>
-          <h1 className="mt-1 text-2xl font-extrabold tracking-tight">{sc?.title ?? original.scenario}</h1>
+          <p className="eyebrow text-violet-300">Repair record · attempt {a.attempt} of {runner.maxAttempts}</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">{sc?.title ?? original.scenario}</h1>
           <p className="mono mt-1 text-mute">{a.branch} · started {when(a.created_at)}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -46,26 +46,30 @@ export default async function RepairPage({ params }: { params: Promise<{ id: str
       </div>
 
       <section className="card">
-        <ol className="space-y-4">
-          {stages.map((st, i) => (
-            <li key={i} className="flex gap-3">
-              <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${st.state === "done" ? (i === 0 ? "bg-rose-500 text-white" : "bg-emerald-500 text-white") : st.state === "failed" ? "bg-rose-500 text-white" : st.state === "running" ? "bg-sky-500 text-white" : "bg-slate-100 text-slate-400"}`}>
-                {st.state === "waiting" ? <CircleDashed className="h-4 w-4" /> : st.state === "failed" ? <XCircle className="h-4 w-4" /> : st.state === "running" ? <st.Icon className="h-4 w-4 animate-pulse" /> : i === 0 ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
-              </span>
-              <div className="min-w-0 pt-1">
-                <p className="font-semibold">{st.label}</p>
-                {st.detail && <p className="mono mt-0.5 break-words text-mute">{st.detail}</p>}
-              </div>
-            </li>
-          ))}
+        <ol className="relative">
+          {stages.map((st, i) => {
+            const color = st.state === "failed" || (i === 0 && st.state === "done") ? "rose" : st.state === "done" ? "emerald" : st.state === "running" ? "cyan" : "slate";
+            return (
+              <li key={i} className="relative flex gap-4 pb-7 last:pb-0">
+                {i < stages.length - 1 && <span className={`absolute left-[17px] top-10 h-[calc(100%-2.75rem)] w-px ${st.state === "done" ? "bg-gradient-to-b from-emerald-400/60 to-white/10" : "bg-white/10"}`} />}
+                <span className={`relative grid h-9 w-9 shrink-0 place-items-center rounded-full ring-1 ${color === "rose" ? "bg-rose-400/15 text-rose-300 ring-rose-400/30" : color === "emerald" ? "bg-emerald-400/15 text-emerald-300 ring-emerald-400/30" : color === "cyan" ? "bg-cyan-400/15 text-cyan-300 ring-cyan-400/30 shadow-[0_0_20px_-2px_rgb(34_211_238/0.6)]" : "bg-white/5 text-mute ring-white/10"}`}>
+                  {st.state === "waiting" ? <CircleDashed className="h-4 w-4" /> : st.state === "running" ? <st.Icon className="h-4 w-4 animate-pulse" /> : color === "rose" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                </span>
+                <div className="min-w-0 pt-1.5">
+                  <p className={`font-medium ${st.state === "waiting" ? "text-mute" : ""}`}>{st.label}</p>
+                  {st.detail && <p className="mono mt-1 break-words leading-relaxed text-mute">{st.detail}</p>}
+                </div>
+              </li>
+            );
+          })}
         </ol>
       </section>
 
       {s === "verified" && (
-        <section className="card flex flex-wrap items-center justify-between gap-4 border-emerald-200 bg-emerald-50/60">
+        <section className="card flex flex-wrap items-center justify-between gap-4 !border-emerald-400/25 !bg-emerald-400/[0.06]">
           <div>
-            <p className="font-bold text-emerald-800">Verified by a second run of the same journey.</p>
-            <p className="text-sm text-emerald-900/80">Review the diff below. Nothing is merged until you approve it.</p>
+            <p className="font-semibold text-emerald-200">Verified by a second run of the same journey.</p>
+            <p className="mt-0.5 text-sm text-emerald-100/70">Review the diff below. Nothing is merged until you approve it.</p>
           </div>
           <div className="flex gap-2">
             <ActionButton action="discard" id={a.id} kind="btn-danger" confirm="Discard this repair? Its record stays, the branch is deleted."><Trash2 className="h-4 w-4" />Discard</ActionButton>
@@ -74,25 +78,31 @@ export default async function RepairPage({ params }: { params: Promise<{ id: str
         </section>
       )}
       {["unit_failed", "retest_failed", "agent_failed", "rejected"].includes(s) && (
-        <section className="card flex flex-wrap items-center justify-between gap-4 border-rose-200 bg-rose-50/60">
-          <p className="text-sm text-rose-900"><b>Not verified.</b> A failed retest stays a failure. {failure && runner.attemptsOf(failure.id).length < runner.maxAttempts ? "You can start another attempt from the failed run." : "The attempt limit is reached."}</p>
+        <section className="card flex flex-wrap items-center justify-between gap-4 !border-rose-400/25 !bg-rose-400/[0.06]">
+          <p className="text-sm text-rose-100/80"><b className="text-rose-200">Not verified.</b> A failed retest stays a failure. {failure && runner.attemptsOf(failure.id).length < runner.maxAttempts ? "You can start another attempt from the failed run." : "The attempt limit is reached."}</p>
           {s !== "merged" && <ActionButton action="discard" id={a.id} kind="btn-danger"><Trash2 className="h-4 w-4" />Clean up worktree</ActionButton>}
         </section>
       )}
 
       <section className="card">
-        <h2 className="font-bold">Patch</h2>
+        <h2 className="font-semibold">Patch</h2>
         <div className="mt-3"><Diff diff={a.patch_diff} /></div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">
-        <div className="card"><p className="eyebrow text-rose-600">Before · {original.status}</p><div className="mt-1"><TesterTag runner={original.runner} /></div>{before && <img src={before} alt="Before" className="mt-3 w-full rounded-xl border border-line" />}</div>
-        <div className="card"><p className="eyebrow text-emerald-600">After · {rerun?.status ?? "not run"}</p>{rerun && <div className="mt-1"><TesterTag runner={rerun.runner} /></div>}{after ? <img src={after} alt="After" className="mt-3 w-full rounded-xl border border-line" /> : <p className="mt-3 text-sm text-mute">The retest hasn't run.</p>}</div>
+        <div className="card space-y-3">
+          <div className="flex items-center justify-between"><p className="eyebrow text-rose-300">Before · {original.status}</p><TesterTag runner={original.runner} /></div>
+          <BrowserShot src={before} tone="fail" url={`northwind.test · ${original.scenario}`} />
+        </div>
+        <div className="card space-y-3">
+          <div className="flex items-center justify-between"><p className="eyebrow text-emerald-300">After · {rerun?.status ?? "not run"}</p>{rerun && <TesterTag runner={rerun.runner} />}</div>
+          {after ? <BrowserShot src={after} tone={rerun?.status === "passed" ? "pass" : "fail"} url={`worktree · ${a.branch}`} /> : <p className="rounded-xl bg-white/[0.03] p-10 text-center text-sm text-mute ring-1 ring-white/10">The retest hasn't run.</p>}
+        </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">
-        <details className="card"><summary className="cursor-pointer font-bold">Agent log</summary><pre className="mono mt-3 max-h-96 overflow-auto whitespace-pre-wrap text-mute">{a.agent_log || "—"}</pre></details>
-        <details className="card"><summary className="cursor-pointer font-bold">Unit check output</summary><pre className="mono mt-3 max-h-96 overflow-auto whitespace-pre-wrap text-mute">{a.unit_log || "—"}</pre></details>
+        <details className="card"><summary className="cursor-pointer font-semibold">Agent log</summary><pre className="mono mt-3 max-h-96 overflow-auto whitespace-pre-wrap text-mute">{a.agent_log || "—"}</pre></details>
+        <details className="card"><summary className="cursor-pointer font-semibold">Unit check output</summary><pre className="mono mt-3 max-h-96 overflow-auto whitespace-pre-wrap text-mute">{a.unit_log || "—"}</pre></details>
       </section>
     </div>
   );

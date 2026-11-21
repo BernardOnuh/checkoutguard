@@ -1,22 +1,36 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --color-ink: #0f172a;
-  --color-mute: #64748b;
-  --color-line: #e2e8f0;
-  --color-paper: #f8fafc;
-  --color-guard: #4338ca;
-  --color-guard-soft: #eef2ff;
+  --font-sans: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --color-bg: #070912;
+  --color-panel: #0d1120;
+  --color-ink: #e7ebf5;
+  --color-mute: #8b93a7;
+  --color-line: rgb(255 255 255 / 0.08);
+  --color-pass: #34d399;
+  --color-fail: #fb7185;
+  --color-warn: #fbbf24;
+  --color-brand: #8b5cf6;
+  --color-brand-2: #22d3ee;
 }
 
-body { @apply bg-paper text-ink antialiased; }
-@utility card { @apply rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgb(15_23_42/0.04)]; }
-@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50; }
-@utility btn-primary { @apply btn bg-guard text-white hover:bg-indigo-800; }
-@utility btn-ghost { @apply btn border border-line bg-white hover:bg-paper; }
-@utility btn-success { @apply btn bg-emerald-600 text-white hover:bg-emerald-700; }
-@utility btn-danger { @apply btn border border-rose-200 bg-white text-rose-700 hover:bg-rose-50; }
-@utility eyebrow { @apply text-[11px] font-bold uppercase tracking-[0.12em]; }
+html { color-scheme: dark; }
+body {
+  @apply bg-bg text-ink antialiased;
+  background-image:
+    radial-gradient(900px 500px at 85% -10%, rgb(139 92 246 / 0.16), transparent 60%),
+    radial-gradient(700px 400px at -10% 10%, rgb(34 211 238 / 0.10), transparent 60%);
+  background-attachment: fixed;
+}
+::selection { background: rgb(139 92 246 / 0.45); }
+
+@utility card { @apply rounded-2xl border border-line bg-panel/80 p-5 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset,0_20px_40px_-24px_rgb(0_0_0/0.8)] backdrop-blur; }
+@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50; }
+@utility btn-primary { @apply btn bg-gradient-to-r from-brand to-indigo-500 text-white shadow-[0_8px_24px_-10px_rgb(139_92_246/0.9)] hover:brightness-110; }
+@utility btn-ghost { @apply btn border border-line bg-white/[0.03] text-ink hover:bg-white/[0.07]; }
+@utility btn-success { @apply btn bg-gradient-to-r from-emerald-500 to-teal-500 text-emerald-950 shadow-[0_8px_24px_-10px_rgb(52_211_153/0.8)] hover:brightness-110; }
+@utility btn-danger { @apply btn border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20; }
+@utility eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.16em]; }
 @utility mono { @apply font-mono text-xs; }
+@utility grad-text { @apply bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-200 bg-clip-text text-transparent; }
