@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Record the CheckoutGuard demo: drive the real store and dashboard in headless Chrome and keep every frame.
 
-usage: python3 -I video/record.py WORK_DIR [shot ...]
+usage: python3 -I video/record.py WORK_DIR [shot ...]   (CG_START_URL=... to open a page first)
 
 Needs the store on :4300 and the dashboard on :3100. The test, repair and rerun shots run Kane CLI and Claude Code
 for real (Kane credits are spent). While Kane or the agent works, frames are taken less often and an on-screen
@@ -241,6 +241,8 @@ def main():
         ctl.handlers["Page.screencastFrame"] = lambda p: rec.on_frame(ctl, p)
         ctl.call("Page.startScreencast", format="jpeg", quality=86, maxWidth=1920, maxHeight=1080, everyNthFrame=1)
         want = lambda s: not only or s in only
+        if os.environ.get("CG_START_URL"):  # pick up part-way, e.g. on a failed run's page for another repair attempt
+            go(os.environ["CG_START_URL"], 3)
         state = {}
 
         if want("title"):
