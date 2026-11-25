@@ -2,7 +2,8 @@
 // Visual pieces for the homepage: the silk "canyon" of light lines behind the hero, the glowing app tile with its
 // light beam, and the small self-playing illustrations inside the How-it-works cards.
 import { useEffect, useState } from "react";
-import { ArrowUp, Check, FlaskConical, ShieldCheck } from "lucide-react";
+import { ArrowUp, Check, FlaskConical } from "lucide-react";
+import { LogoMark } from "@/components/logo";
 import { useInView } from "./motion";
 
 /** Two walls of fine light lines rising from a valley floor, drifting slowly. */
@@ -39,7 +40,7 @@ export function BeaconTile() {
     <div className="relative flex flex-col items-center">
       <div className="pointer-events-none absolute -top-10 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
       <div className="relative grid h-20 w-20 place-items-center rounded-[22px] bg-gradient-to-b from-neutral-700 to-neutral-950 shadow-[0_0_0_1px_rgb(255_255_255/0.25),0_0_60px_-6px_rgb(255_255_255/0.55),inset_0_1px_0_rgb(255_255_255/0.4)]">
-        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white shadow-[0_0_24px_rgb(255_255_255/0.6)]"><ShieldCheck className="h-7 w-7 text-black" strokeWidth={2.4} /></div>
+        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white text-black shadow-[0_0_24px_rgb(255_255_255/0.6)]"><LogoMark className="h-8 w-8" /></div>
       </div>
       <div className="beam h-40 w-16" />
       <div className="-mt-6 h-6 w-72 rounded-[50%] bg-white/25 blur-xl" />
