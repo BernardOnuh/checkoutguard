@@ -2,7 +2,7 @@
   "id": "cart-total",
   "title": "Cart total with several of one item",
   "objective": "Open the store, add the Ceramic Mug to the cart, set its quantity to 3 and update the cart. Check the cart totals.",
-  "kane": "Add the Ceramic Mug to the cart. On the cart page, change the Ceramic Mug quantity to 3 and click Update. Assert that the Subtotal is $54.00.",
+  "kane": "Add the Ceramic Mug to the cart. On the cart page, change the Ceramic Mug quantity to 3 and click Update. Assert that the Subtotal row in the cart totals shows $54.00.",
   "steps": [
     "Open the store home page",
     "Click 'Add to cart' on the Ceramic Mug ($18.00)",
