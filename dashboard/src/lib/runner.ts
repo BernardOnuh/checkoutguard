@@ -1,8 +1,11 @@
 // The dashboard talks to the local runner in-process. These functions only ever run on this machine's server.
 import "server-only";
-// The runner is plain JavaScript (ES modules) next to the dashboard.
-import * as loop from "../../../runner/src/loop.js";
-import { db, DATA_DIR, ROOT } from "../../../runner/src/db.js";
+import { PUBLIC_SITE } from "./public-site";
+
+// The runner is plain JavaScript (ES modules) next to the dashboard. It opens the run history as it loads, so the
+// public site (which never calls it: its dashboard routes redirect) doesn't load it at all.
+const loop = PUBLIC_SITE ? (null as unknown as typeof import("../../../runner/src/loop.js")) : await import("../../../runner/src/loop.js");
+const { db, DATA_DIR, ROOT } = PUBLIC_SITE ? ({} as typeof import("../../../runner/src/db.js")) : await import("../../../runner/src/db.js");
 
 type Row = Record<string, unknown>;
 export type Run = { id: string; scenario: string; runner: string; target: string; status: string; steps: string; log_path: string | null; started_at: string; completed_at: string | null };
@@ -15,9 +18,9 @@ const all = <T>(sql: string, ...p: (string | number)[]) => (db.prepare(sql).all(
 const one = <T>(sql: string, ...p: (string | number)[]) => (db.prepare(sql).get(...p) as T | undefined) ?? null;
 
 export const runner = {
-  root: ROOT as string,
-  dataDir: DATA_DIR as string,
-  maxAttempts: loop.MAX_ATTEMPTS as number,
+  get root() { return ROOT as string; },
+  get dataDir() { return DATA_DIR as string; },
+  get maxAttempts() { return loop.MAX_ATTEMPTS as number; },
   tester: () => loop.testerName() as string,
   scenarios: () => loop.scenarios() as Scenario[],
   scenario: (id: string) => (loop.scenarios() as Scenario[]).find(s => s.id === id) ?? null,
