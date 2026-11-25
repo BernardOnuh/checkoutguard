@@ -5,7 +5,7 @@ usage: python3 -I video/build.py WORK_DIR OUT.mp4 [EXTRA_TAKE_DIR ...]
 
 Reads WORK_DIR/takes.json (from record.py) and WORK_DIR/voice.json (from narrate.py). Shots recorded again in
 an extra take (e.g. a repair re-run after a flaky Kane rerun) replace the same shots from earlier takes. Each shot lasts as long as
-its line, or longer if its real-time footage needs it. Real-time segments play at normal speed; time-lapse
+its line, or longer if its footage needs it. Ordinary footage plays at up to MAX_SPEED to fit; time-lapse
 segments (labelled in the footage with the real time elapsed) are sped up to fill the rest. A shot shorter than
 its line holds its last frame. Then encode.swift makes the silent 30 fps video and finish.swift lays the voice on it.
 """
@@ -20,7 +20,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 FPS = 30
 LEAD, TAIL = 0.5, 0.9  # silence before and after each line, within its shot
-MIN_LAPSE = 3.0        # the shortest a sped-up segment may play
+MIN_LAPSE = 3.0        # the shortest a time-lapse segment may play
+MAX_SPEED = 2.0        # ordinary footage (clicks, scrolling) may play up to this fast to fit its line
 
 
 def main():
@@ -46,14 +47,18 @@ def main():
         real = sum(s["end"] - s["start"] for s in segs if s["mode"] == "real")
         lapses = [s for s in segs if s["mode"] == "lapse"]
         line = voice[shot["id"]]["seconds"]
-        length = max(line + LEAD + TAIL, real + MIN_LAPSE * len(lapses))
-        spare = length - real
+        need = line + LEAD + TAIL
+        lapse_min = MIN_LAPSE * len(lapses)
+        real_out = min(real, max(need - lapse_min, real / MAX_SPEED))  # speed real footage up only as far as needed
+        length = max(need, real_out + lapse_min)
+        speed = real / real_out if real_out else 1
+        spare = length - real_out
         lapse_total = sum(s["end"] - s["start"] for s in lapses) or 1
         outs = []
         for s in segs:
             src = s["end"] - s["start"]
             if s["mode"] == "real":
-                outs.append((s, src, src))
+                outs.append((s, src, src / speed))
             else:
                 outs.append((s, src, max(MIN_LAPSE, spare * src / lapse_total)))
         hold = length - sum(o for _, _, o in outs)  # > 0 only when there's no time-lapse to stretch
@@ -72,7 +77,7 @@ def main():
             k = bisect.bisect_right(times, src_t) - 1
             os.link(take / "frames" / f"{frames[max(k, 0)][0]:06d}.jpg", dest / f"{n:06d}.jpg")
         clips.append({"file": voice[shot["id"]]["file"], "start": round(clock + LEAD, 3), "volume": 1.0})
-        plan.append(f"{clock:6.1f}s  {shot['id']:<10} {length:5.1f}s (line {line:4.1f}s, real {real:5.1f}s, "
+        plan.append(f"{clock:6.1f}s  {shot['id']:<10} {length:5.1f}s (line {line:4.1f}s, real {real:5.1f}s at {speed:.2f}x, "
                     + ", ".join(f"sped up {src:.0f}s→{o:.1f}s" for s, src, o in outs if s["mode"] == "lapse")
                     + (f", hold {hold:.1f}s" if hold > 0.05 else "") + ")")
         clock += length
