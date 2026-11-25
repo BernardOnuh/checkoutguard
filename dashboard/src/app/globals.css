@@ -81,3 +81,24 @@ body {
 /* the homepage is black and white: pure black, neutral greys, white light */
 .mono-site { --color-bg: #000; --color-panel: #0d0d0d; --color-ink: #f5f5f5; --color-mute: #9a9a9a; --color-line: rgb(255 255 255 / 0.1); background: #000; color: var(--color-ink); }
 .mono-site ::selection { background: #fff; color: #000; }
+
+/* ---------- homepage v3 visuals ---------- */
+.silk-drift { animation: silk 14s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes silk { 50% { transform: translateY(-10px) scaleY(1.02); } }
+.beam { background: linear-gradient(to bottom, rgb(255 255 255 / 0.75), rgb(255 255 255 / 0.15) 60%, transparent); filter: blur(6px); clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%); animation: beam 4s ease-in-out infinite; }
+@keyframes beam { 50% { opacity: 0.7; } }
+.orb-pulse { animation: orb 3.2s ease-in-out infinite; }
+@keyframes orb { 50% { transform: scale(1.08); box-shadow: 0 0 80px -6px rgb(255 255 255 / 0.45); } }
+.twinkle { opacity: 0; animation: twinkle 3s ease-in-out infinite; }
+@keyframes twinkle { 50% { opacity: 0.9; } }
+.caret { animation: caret 1s steps(1) infinite; margin-left: 1px; }
+@keyframes caret { 50% { opacity: 0; } }
+.cube { position: relative; width: 44px; height: 44px; transform-style: preserve-3d; animation: cube 9s linear infinite; }
+.cube span { position: absolute; inset: 0; border: 1px solid rgb(255 255 255 / 0.55); background: linear-gradient(135deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.02)); box-shadow: 0 0 20px rgb(255 255 255 / 0.15) inset; }
+.cube span:nth-child(1) { transform: translateZ(22px); }
+.cube span:nth-child(2) { transform: rotateY(90deg) translateZ(22px); }
+.cube span:nth-child(3) { transform: rotateX(90deg) translateZ(22px); }
+@keyframes cube { from { transform: rotateX(-24deg) rotateY(0deg); } to { transform: rotateX(-24deg) rotateY(360deg); } }
+.pill { display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 999px; border: 1px solid rgb(255 255 255 / 0.14); background: rgb(255 255 255 / 0.04); padding: 0.3rem 0.75rem; font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #bdbdbd; }
+.tile { border-radius: 22px; border: 1px solid rgb(255 255 255 / 0.09); background: linear-gradient(180deg, #121212, #090909); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 30px 60px -30px rgb(0 0 0 / 0.9); }
+@media (prefers-reduced-motion: reduce) { .silk-drift, .beam, .orb-pulse, .twinkle, .caret, .cube { animation: none !important; } .twinkle { opacity: 0.5; } }
