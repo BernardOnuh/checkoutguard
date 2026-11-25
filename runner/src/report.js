@@ -18,7 +18,9 @@ export function buildReport(attemptId) {
   const v = db.prepare("SELECT * FROM verifications WHERE attempt_id = ?").get(a.id);
   const after = v ? db.prepare("SELECT * FROM test_runs WHERE id = ?").get(v.rerun_id) : null;
   const sc = scenario(before.scenario);
-  const verified = a.status === "verified" || a.status === "merged";
+  // the verdict comes from the rerun itself; what a person then did with the patch is shown separately
+  const verified = after?.status === "passed" && a.status !== "failed";
+  const decision = a.status === "merged" ? ", and a person approved the merge" : a.status === "rejected" ? ". A person discarded the patch instead of merging it" : ". Waiting for human approval before merging";
   const diff = a.patch_diff.split("\n").map(l => `<span class="${l.startsWith("+") && !l.startsWith("+++") ? "add" : l.startsWith("-") && !l.startsWith("---") ? "del" : l.startsWith("@@") ? "hunk" : ""}">${esc(l) || " "}</span>`).join("");
   const checks = run => JSON.parse(run.steps).map(s => `<li class="${s.status}"><b>${s.status === "passed" ? "✓" : "✗"} ${esc(s.name)}</b><br>expected ${esc(s.expected)} · actual ${esc(s.actual)}</li>`).join("");
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -38,7 +40,7 @@ export function buildReport(attemptId) {
 <p class="eyebrow">CheckoutGuard repair record</p>
 <h1>${esc(sc.title)}</h1>
 <p class="muted">Repair ${esc(a.id)} · attempt ${a.attempt} · branch <code>${esc(a.branch)}</code> · ${esc(a.created_at)}</p>
-<div class="verdict ${verified ? "ok" : "bad"}">${verified ? `✓ Verified: the same journey passed after the patch${a.status === "merged" ? ", and a person approved the merge" : ". Waiting for human approval before merging"}.` : `✗ Not verified (${esc(a.status.replace("_", " "))}). A failed retest stays a failure.`}</div>
+<div class="verdict ${verified ? "ok" : "bad"}">${verified ? `✓ Verified: the same journey passed after the patch${decision}.` : `✗ Not verified (${esc(a.status.replace("_", " "))}). A failed retest stays a failure.`}</div>
 <div class="card"><h2>1. The failure</h2><p><span class="tag ${before.runner === "kane" ? "kane" : ""}">${testerLabel(before.runner)}</span> run ${esc(before.id)}</p>
 <p><b>${esc(f.step)}</b><br>Expected <b>${esc(f.expected)}</b>, the page showed <b>${esc(f.actual)}</b>.</p><ul>${checks(before)}</ul></div>
 <div class="card"><h2>2. The patch</h2><p class="muted">Made by the coding agent in an isolated git worktree. Only files under store/src/ may change.</p><pre>${diff || "No changes."}</pre></div>

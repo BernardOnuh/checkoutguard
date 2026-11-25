@@ -1,0 +1,11 @@
+#!/bin/sh
+# A stand-in for kane-cli that replays a recorded `run --agent` result (FAKE_KANE=bug|pass|crash), so the adapter can be
+# tested without Kane credits. The run_end lines are shortened copies of real Kane CLI 0.10.9 output.
+[ "$1" = "--version" ] && { echo "0.10.9"; exit 0; }
+echo '{"type":"stream_start","cli_version":"0.10.9","surface":"run","v":1}'
+echo '{"step":2,"status":"done","remark":"click: Clicking Add to cart for the Ceramic Mug","v":1}'
+case "$FAKE_KANE" in
+  bug)   echo '{"type":"run_end","status":"failed","reason_code":"assertion_error.confirmed_product_bug","one_liner":"After the quantity changed to 3, the cart still displayed a subtotal of $18.00 instead of $54.00.","summary":"The cart did not recalculate the subtotal.","credits_consumed":20.0,"v":1}'; exit 1 ;;
+  pass)  echo '{"type":"run_end","status":"passed","one_liner":"updated the Ceramic Mug quantity on the cart page","credits_consumed":8.8,"v":1}'; exit 0 ;;
+  crash) echo '{"type":"run_end","status":"failed","reason_code":"infra_error.screenshot_failed","one_liner":"","reason":"Screenshot failed: TargetClosedError","credits_consumed":14.7,"v":1}'; exit 1 ;;
+esac

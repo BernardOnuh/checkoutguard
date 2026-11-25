@@ -8,6 +8,7 @@ import { mkdtempSync, rmSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+process.env.CG_TESTER = "local"; // these tests cover the loop with the free stand-in check; Kane is tested in kane.test.mjs
 const REPO = new URL("../..", import.meta.url).pathname;
 const tmp = mkdtempSync(join(tmpdir(), "cg-loop-"));
 const clone = join(tmp, "repo");

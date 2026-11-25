@@ -2,6 +2,7 @@
   "id": "expired-coupon",
   "title": "Expired coupon must be rejected",
   "objective": "Open the store, add the Canvas Tote to the cart, enter the coupon code OLD20 and click Apply coupon. The coupon expired in January 2024 and must be rejected with no discount.",
+  "kane": "Add the Canvas Tote to the cart. On the cart page, type OLD20 into the coupon field and click Apply coupon. Assert that an error message says the coupon has expired and no discount is applied.",
   "steps": [
     "Open the store home page",
     "Click 'Add to cart' on the Canvas Tote ($24.00)",
@@ -9,9 +10,21 @@
     "Read the message and the totals"
   ],
   "expect": [
-    { "check": "An error says the coupon has expired", "selector": "[data-testid=coupon-error]", "contains": "expired" },
-    { "check": "No discount line is shown", "selector": "[data-testid=discount]", "absent": true },
-    { "check": "Total stays $29.00 ($24.00 + $5.00 shipping)", "selector": "[data-testid=total]", "equals": "$29.00" }
+    {
+      "check": "An error says the coupon has expired",
+      "selector": "[data-testid=coupon-error]",
+      "contains": "expired"
+    },
+    {
+      "check": "No discount line is shown",
+      "selector": "[data-testid=discount]",
+      "absent": true
+    },
+    {
+      "check": "Total stays $29.00 ($24.00 + $5.00 shipping)",
+      "selector": "[data-testid=total]",
+      "equals": "$29.00"
+    }
   ],
   "seededBug": "pricing.checkCoupon never checks the expiry date"
 }
