@@ -33,6 +33,8 @@ body {
 @utility btn-danger { @apply btn border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20; }
 @utility eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.16em]; }
 @utility mono { @apply font-mono text-xs; }
+@utility btn-light { @apply btn bg-white text-black shadow-[0_8px_30px_-10px_rgb(255_255_255/0.6)] hover:bg-neutral-200; }
+@utility mono-text { @apply bg-gradient-to-r from-white via-neutral-300 to-neutral-500 bg-clip-text text-transparent; }
 @utility grad-text { @apply bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-200 bg-clip-text text-transparent; }
 
 /* ---------- homepage motion (all of it off under prefers-reduced-motion) ---------- */
@@ -44,17 +46,17 @@ body {
 @keyframes fade-swap { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 .grid-floor {
-  background-image: linear-gradient(rgb(139 92 246 / 0.35) 1px, transparent 1px), linear-gradient(90deg, rgb(34 211 238 / 0.25) 1px, transparent 1px);
+  background-image: linear-gradient(rgb(255 255 255 / 0.22) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.16) 1px, transparent 1px);
   background-size: 48px 48px; transform: rotateX(72deg); transform-origin: top center;
   mask-image: radial-gradient(60% 70% at 50% 0%, black, transparent); animation: floor-run 3.5s linear infinite;
 }
 @keyframes floor-run { to { background-position: 0 48px, 0 0; } }
-.particle { position: absolute; width: 3px; height: 3px; border-radius: 999px; background: rgb(196 181 253 / 0.8); box-shadow: 0 0 10px 2px rgb(139 92 246 / 0.6); animation: drift ease-in-out infinite; opacity: 0; }
+.particle { position: absolute; width: 3px; height: 3px; border-radius: 999px; background: rgb(255 255 255 / 0.85); box-shadow: 0 0 10px 2px rgb(255 255 255 / 0.45); animation: drift ease-in-out infinite; opacity: 0; }
 @keyframes drift { 0% { opacity: 0; transform: translateY(20px); } 30% { opacity: 0.9; } 100% { opacity: 0; transform: translateY(-80px) translateX(14px); } }
 .card-tilt { transform: rotateY(-9deg) rotateX(5deg); transform-style: preserve-3d; animation: tilt 9s ease-in-out infinite; }
 @keyframes tilt { 50% { transform: rotateY(-3deg) rotateX(2deg) translateY(-8px); } }
 .scan-beam { position: absolute; left: 0; right: 0; height: 120px; top: -120px;
-  background: linear-gradient(to bottom, transparent, rgb(34 211 238 / 0.10) 60%, rgb(34 211 238 / 0.55) 98%, transparent);
+  background: linear-gradient(to bottom, transparent, rgb(255 255 255 / 0.06) 60%, rgb(255 255 255 / 0.45) 98%, transparent);
   animation: scan 4.2s cubic-bezier(.45,.05,.55,.95) infinite; mix-blend-mode: screen; }
 @keyframes scan { 0% { top: -120px; } 60%, 100% { top: 105%; } }
 .hero-glow { animation: glow-breathe 7s ease-in-out infinite; }
@@ -62,7 +64,7 @@ body {
 .shimmer { background-size: 200% auto; animation: shimmer 6s linear infinite; }
 @keyframes shimmer { to { background-position: 200% center; } }
 .shield-ring { animation: shield 2.6s ease-in-out infinite; }
-@keyframes shield { 50% { box-shadow: 0 0 40px 2px rgb(251 191 36 / 0.25), inset 0 0 30px rgb(251 191 36 / 0.12); border-color: rgb(252 211 77 / 0.7); } }
+@keyframes shield { 50% { box-shadow: 0 0 40px 2px rgb(255 255 255 / 0.22), inset 0 0 30px rgb(255 255 255 / 0.1); border-color: rgb(255 255 255 / 0.75); } }
 .bounce-l { animation: bounce-l 2.4s ease-in-out infinite; }
 .bounce-r { animation: bounce-r 2.4s ease-in-out infinite 0.6s; }
 .bounce-b { animation: bounce-b 2.4s ease-in-out infinite 1.2s; }
@@ -75,3 +77,7 @@ body {
   .reveal, .word-in { opacity: 1 !important; transform: none !important; animation: none !important; transition: none !important; }
   .grid-floor, .particle, .card-tilt, .scan-beam, .hero-glow, .shimmer, .shield-ring, .bounce-l, .bounce-r, .bounce-b, .marquee, .fade-swap { animation: none !important; }
 }
+
+/* the homepage is black and white: pure black, neutral greys, white light */
+.mono-site { --color-bg: #000; --color-panel: #0d0d0d; --color-ink: #f5f5f5; --color-mute: #9a9a9a; --color-line: rgb(255 255 255 / 0.1); background: #000; color: var(--color-ink); }
+.mono-site ::selection { background: #fff; color: #000; }
