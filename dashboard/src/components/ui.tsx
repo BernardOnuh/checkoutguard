@@ -75,9 +75,9 @@ export function Diff({ diff }: { diff: string }) {
   );
 }
 
-/** Detected → Patched → Verified → Merged, for a journey's latest repair. */
+/** Kane found it → agent patched → Kane verified → you merged, for a journey's latest repair. */
 export function Pipeline({ stage, failedAt }: { stage: number; failedAt?: number }) {
-  const steps = ["Detected", "Patched", "Verified", "Merged"];
+  const steps = ["Kane found it", "Agent patched", "Kane verified", "You merged"];
   return (
     <ol className="flex items-center gap-1.5">
       {steps.map((s, i) => {

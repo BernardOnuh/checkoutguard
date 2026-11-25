@@ -20,7 +20,7 @@ export function ActionButton({ action, id, children, kind = "btn-primary", confi
     if (attemptId) router.push(`/repairs/${attemptId}`); else router.refresh();
   }
   return (
-    <span className="inline-flex flex-col gap-1">
+    <span className={`inline-flex flex-col gap-1 ${kind.includes("w-full") ? "w-full" : ""}`}>
       <button className={kind} onClick={go} disabled={busy}>{busy && <Loader2 className="h-4 w-4 animate-spin" />}{children}</button>
       {error && <span className="max-w-xs text-xs text-neutral-300">{error}</span>}
     </span>
