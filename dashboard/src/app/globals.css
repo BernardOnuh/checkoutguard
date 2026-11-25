@@ -34,3 +34,44 @@ body {
 @utility eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.16em]; }
 @utility mono { @apply font-mono text-xs; }
 @utility grad-text { @apply bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-200 bg-clip-text text-transparent; }
+
+/* ---------- homepage motion (all of it off under prefers-reduced-motion) ---------- */
+.reveal { opacity: 0; transform: translateY(28px) scale(0.985); transition: opacity 0.9s cubic-bezier(.2,.7,.2,1), transform 0.9s cubic-bezier(.2,.7,.2,1); }
+.reveal-in { opacity: 1; transform: none; }
+.word-in { transform: translateY(105%); animation: word-rise 0.9s cubic-bezier(.2,.8,.2,1) forwards; }
+@keyframes word-rise { to { transform: translateY(0); } }
+.fade-swap { animation: fade-swap 0.5s ease both; }
+@keyframes fade-swap { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.grid-floor {
+  background-image: linear-gradient(rgb(139 92 246 / 0.35) 1px, transparent 1px), linear-gradient(90deg, rgb(34 211 238 / 0.25) 1px, transparent 1px);
+  background-size: 48px 48px; transform: rotateX(72deg); transform-origin: top center;
+  mask-image: radial-gradient(60% 70% at 50% 0%, black, transparent); animation: floor-run 3.5s linear infinite;
+}
+@keyframes floor-run { to { background-position: 0 48px, 0 0; } }
+.particle { position: absolute; width: 3px; height: 3px; border-radius: 999px; background: rgb(196 181 253 / 0.8); box-shadow: 0 0 10px 2px rgb(139 92 246 / 0.6); animation: drift ease-in-out infinite; opacity: 0; }
+@keyframes drift { 0% { opacity: 0; transform: translateY(20px); } 30% { opacity: 0.9; } 100% { opacity: 0; transform: translateY(-80px) translateX(14px); } }
+.card-tilt { transform: rotateY(-9deg) rotateX(5deg); transform-style: preserve-3d; animation: tilt 9s ease-in-out infinite; }
+@keyframes tilt { 50% { transform: rotateY(-3deg) rotateX(2deg) translateY(-8px); } }
+.scan-beam { position: absolute; left: 0; right: 0; height: 120px; top: -120px;
+  background: linear-gradient(to bottom, transparent, rgb(34 211 238 / 0.10) 60%, rgb(34 211 238 / 0.55) 98%, transparent);
+  animation: scan 4.2s cubic-bezier(.45,.05,.55,.95) infinite; mix-blend-mode: screen; }
+@keyframes scan { 0% { top: -120px; } 60%, 100% { top: 105%; } }
+.hero-glow { animation: glow-breathe 7s ease-in-out infinite; }
+@keyframes glow-breathe { 50% { opacity: 0.6; transform: scale(1.06); } }
+.shimmer { background-size: 200% auto; animation: shimmer 6s linear infinite; }
+@keyframes shimmer { to { background-position: 200% center; } }
+.shield-ring { animation: shield 2.6s ease-in-out infinite; }
+@keyframes shield { 50% { box-shadow: 0 0 40px 2px rgb(251 191 36 / 0.25), inset 0 0 30px rgb(251 191 36 / 0.12); border-color: rgb(252 211 77 / 0.7); } }
+.bounce-l { animation: bounce-l 2.4s ease-in-out infinite; }
+.bounce-r { animation: bounce-r 2.4s ease-in-out infinite 0.6s; }
+.bounce-b { animation: bounce-b 2.4s ease-in-out infinite 1.2s; }
+@keyframes bounce-l { 0%, 100% { transform: translateX(-10px); } 45% { transform: translateX(34px); } 55% { transform: translateX(26px); } }
+@keyframes bounce-r { 0%, 100% { transform: translateX(10px); } 45% { transform: translateX(-34px); } 55% { transform: translateX(-26px); } }
+@keyframes bounce-b { 0%, 100% { transform: translate(-50%, 10px); } 45% { transform: translate(-50%, -30px); } 55% { transform: translate(-50%, -22px); } }
+.marquee { animation: marquee 30s linear infinite; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .word-in { opacity: 1 !important; transform: none !important; animation: none !important; transition: none !important; }
+  .grid-floor, .particle, .card-tilt, .scan-beam, .hero-glow, .shimmer, .shield-ring, .bounce-l, .bounce-r, .bounce-b, .marquee, .fade-swap { animation: none !important; }
+}
