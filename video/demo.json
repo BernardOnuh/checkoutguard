@@ -10,52 +10,60 @@
  },
  "lines": [
   {
+   "id": "report",
+   "text": "This is a Kane CLI run report from CheckoutGuard. Kane failed our store's cart journey: three mugs, and the subtotal stayed at eighteen dollars. A coding agent fixed it, and Kane ran the same journey again. It passed. Here's how that loop works."
+  },
+  {
    "id": "title",
-   "text": "Checkout bugs cost sales, and they often ship without anyone noticing. This is CheckoutGuard."
+   "text": "Every online store has a checkout. When it breaks, it costs a sale every single time, and often nobody notices, because nobody clicks through the whole journey. This is CheckoutGuard."
   },
   {
    "id": "what",
-   "text": "Kane CLI tests your checkout, a coding agent fixes what breaks, and Kane checks the fix before anything merges."
+   "text": "CheckoutGuard tests your checkout with Kane CLI, hands any bug it finds to a coding agent, and only calls a fix verified when Kane passes the journey again. And a person approves every merge."
   },
   {
    "id": "store",
-   "text": "In our demo store, three mugs at eighteen dollars should cost fifty-four. The cart says eighteen."
+   "text": "Here's our demo store, Northwind Goods. I add a ceramic mug to the cart, and set the quantity to three. Three mugs at eighteen dollars should cost fifty-four. The cart says eighteen. That's the kind of bug that slips through."
   },
   {
    "id": "dashboard",
-   "text": "Here's the CheckoutGuard dashboard, with the three checkout journeys we test."
+   "text": "This is the CheckoutGuard dashboard. At the top is the loop, with live numbers. Below are the three checkout journeys we test: the cart total, an expired coupon, and the order confirmation page."
   },
   {
    "id": "test",
-   "text": "I run the cart journey. Kane CLI drives a real browser, step by step, like a customer."
+   "text": "Let's test the cart journey. CheckoutGuard runs Kane CLI with a plain-English objective: add the mug, set the quantity to three, and check that the subtotal is fifty-four dollars. Kane drives a real browser, step by step, like a customer would."
   },
   {
    "id": "found",
-   "text": "Kane fails it, and says why: the subtotal stayed at eighteen dollars."
+   "text": "Kane fails the journey, and says why: after the quantity changed to three, the subtotal still showed eighteen dollars."
+  },
+  {
+   "id": "evidence",
+   "text": "The evidence page keeps everything Kane saw: the journey, every check it made, its diagnosis, and a screenshot from the moment it failed."
   },
   {
    "id": "repair",
-   "text": "I ask for a fix. Claude Code works in an isolated copy of the store, with no shell, no web, and no access to the tests."
+   "text": "Now I ask for a fix. Kane's evidence becomes the brief for Claude Code. It works in an isolated copy of the store, with file tools only. It has no shell, no web access, and it can't edit the tests."
   },
   {
    "id": "patch",
-   "text": "The fix is one line, and the unit checks pass."
+   "text": "The agent finds the bug in the pricing code. It added each product's price once and ignored the quantity. The fix is one line. Then the unit checks run, with no regressions."
   },
   {
    "id": "rerun",
-   "text": "Then Kane reruns the same journey. Only a Kane pass marks the repair verified."
+   "text": "Now the part that matters. Kane runs the exact same journey against the patched store. Only when Kane passes it is the repair marked verified."
   },
   {
    "id": "review",
-   "text": "I review the diff, and Kane's before and after screenshots."
+   "text": "Nothing merges on its own. I review the diff, and Kane's before and after screenshots. Every repair also has a report I can download, so the decision can be checked later."
   },
   {
    "id": "approve",
-   "text": "Then I approve, and it's merged."
+   "text": "It looks right, so I approve, and the fix is merged."
   },
   {
    "id": "close",
-   "text": "Every checkout tested. Every fix verified. That's CheckoutGuard."
+   "text": "CheckoutGuard caught and fixed all three seeded checkout bugs this way, and Kane CLI verified every fix. Every checkout tested. Every fix verified."
   }
  ]
 }

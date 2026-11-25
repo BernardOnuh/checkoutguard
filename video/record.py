@@ -245,6 +245,18 @@ def main():
             go(os.environ["CG_START_URL"], 3)
         state = {}
 
+        if want("report"):  # the video opens on a Kane run report (CG_REPORT: which report in public/evidence)
+            go(f"{SITE}/evidence/{os.environ.get('CG_REPORT', 'kane-cart-total-live')}.html", 1.5)
+            rec.begin("report")
+            move(700, 160, 3.5)
+            h2 = lambda words: f"[...document.querySelectorAll('h2')].find(h => h.textContent.includes({json.dumps(words)}))"
+            js(f"({h2('The failure')}).scrollIntoView({{ block: 'start', behavior: 'smooth' }})"); time.sleep(1.2)
+            move(760, 520, 5)
+            js(f"({h2('rerun')}).scrollIntoView({{ block: 'start', behavior: 'smooth' }})"); time.sleep(1.2)
+            move(640, 300, 5)
+            js(f"({h2('Before and after')}).scrollIntoView({{ block: 'start', behavior: 'smooth' }})"); time.sleep(1.2)
+            move(900, 420, 4)
+            rec.end()
         if want("title"):
             go(SITE + "/", 0.3)
             rec.begin("title"); move(980, 560, 4); move(760, 640, 6); move(1040, 520, 6); rec.end()
