@@ -1,99 +1,172 @@
+<div align="center">
+
+<img src="docs/images/flyer.jpg" alt="CheckoutGuard: every checkout tested, every fix verified" width="100%" />
+
 # CheckoutGuard
 
-**Every checkout tested. Every fix verified.**
+### A coding agent's checkout fix only counts when a real browser agrees.
 
-CheckoutGuard tests checkout journeys, turns a real failure into evidence, has a coding agent patch the source in an isolated git worktree, and reruns the same journey. A repair is only marked **verified** when the rerun passes. A failed retest stays a failure. Nothing is merged without a person approving it.
+**Kane CLI** tests your checkout in real Chrome · a **coding agent** fixes what breaks · **Kane reruns the same journey** to decide if the fix counts · **you** approve the merge.
 
-Built for the KaneCLI Hackathon (submit by 26 Nov 2026, 11:59 PM IST). Check https://www.kaneclihack.sh for current rules.
+[![Kane CLI](https://img.shields.io/badge/tested%20by-Kane%20CLI-white?style=for-the-badge&labelColor=000)](https://www.testmuai.com/support/docs/kane-cli-introduction/)
+[![Claude Code](https://img.shields.io/badge/fixed%20by-Claude%20Code-white?style=for-the-badge&labelColor=000)](https://claude.com/claude-code)
+[![Bugs verified](https://img.shields.io/badge/seeded%20bugs-3%2F3%20verified-brightgreen?style=for-the-badge&labelColor=000)](#-proven-on-real-kane-cli-runs)
 
-## Status
+**[🌐 Live site](https://checkoutguard-eight.vercel.app)** · **[📝 Write-up](https://checkoutguard-eight.vercel.app/blog)** · **[🎞 Deck](https://checkoutguard-eight.vercel.app/deck)** · **[📄 Kane run report](https://checkoutguard-eight.vercel.app/evidence/kane-cart-total-live.html)** · **[▶ Run it](#-run-it)**
 
-| Piece | State |
-|---|---|
-| Demo store (`store/`) with three seeded checkout bugs | Done |
-| Scenarios (`scenarios/`) | Done: cart total, expired coupon, order confirmation |
-| Repair loop (`runner/`): worktree, agent, unit checks, rerun, verdict, approval | Done and tested |
-| Dashboard (`dashboard/`): journeys, evidence, repair timeline, diff, approve/discard | Done |
-| **Kane CLI tester** (`runner/src/kane.js`) | **Done.** Every journey runs with `kane-cli run --agent`; Kane's verdict, diagnosis and evidence pack drive the loop. Tested against real Kane CLI 0.10.9 on all three bugs, plus adapter tests on recorded output |
-| **Coding agents** | **Claude Code** (default, file tools only) and **OpenCode**; both run headless in the repair worktree with no shell or web access |
+*Built for the KaneCLI Hackathon by TestMu AI.*
 
-### Proven with real Kane CLI runs
+</div>
 
-All three seeded bugs went round the full loop: Kane caught each one, Claude Code patched it from Kane's evidence, the unit gate passed, and Kane reran the same journey and confirmed the fix. The repair records (Kane's steps and diagnosis, the patch, the unit checks, the passing rerun) are in [`docs/evidence/`](docs/evidence/):
+---
 
-| Bug | What Kane CLI reported | Fix | Kane rerun |
-|---|---|---|---|
-| [Cart subtotal](docs/evidence/kane-cart-total.html) | "After the mug quantity changed to 3, the cart still displayed a subtotal of $18.00 instead of $54.00." | `subtotal()` multiplies by quantity | passed |
-| [Expired coupon](docs/evidence/kane-expired-coupon.html) | "The cart accepted OLD20 and applied a 20% discount instead of showing that the coupon had expired." | `checkCoupon()` checks the expiry date | passed |
-| [Order confirmation](docs/evidence/kane-order-confirmation.html) | "After placing the order, checkout redirected to an Order not found page instead of showing the customer confirmation and order number." | the confirmation page reads `?order=` | passed |
+## 💸 The problem
 
-The patches were then discarded (not merged), so the bugs stay seeded for anyone who wants to run it themselves.
+A broken checkout costs a sale **every single time** it happens, and it's exactly the kind of bug that ships: unit tests pass, review looks fine, and nobody clicks through the whole journey. Coding agents make it worse. They say *"done"* when the tests they can see pass, and nothing ever loads the cart in a real browser.
 
-## How it works
+**CheckoutGuard puts Kane CLI in charge of the verdict.** The agent writes the fix; Kane decides whether it worked.
 
-1. A journey (`scenarios/*.json`) runs against the store with **Kane CLI**: its `kane` objective, in plain English, ends in one assertion (for example "Assert that the Subtotal is $54.00."). `kane-cli run --agent` drives a real Chrome and streams NDJSON.
-2. Kane's `run_end` decides: **passed**, a **confirmed product bug** (`assertion_error.*`, which becomes a failure carrying Kane's one-line finding, its diagnosis, the last step's screenshot and the evidence pack), or Kane's own error (`agent_error.*`, `infra_error.*`), which is retried once and never sent for repair.
-3. `cg repair` creates a git worktree on a new branch and hands **Kane's evidence and diagnosis** to the coding agent. The agent may edit files but has **shell and web access denied**.
-4. The patch is **rejected if it changes anything outside `store/src/`**, so the agent can't "fix" a failure by editing the tests.
-5. Unit checks: no test that passed before may fail, and at least one failing test must now pass.
-6. The patched store starts on its own port and **Kane reruns the same journey**. Only Kane passing it means verified. A second attempt, if needed, gets the failed rerun as extra context.
-7. You review the diff in the dashboard and **approve** (merge with `--no-ff`) or **discard**. At most 2 attempts per failure.
+## 🔁 The loop
 
-The demo store's seeded bugs:
-
-| Scenario | Bug |
-|---|---|
-| `cart-total` | Subtotal ignores quantity: 3 mugs show $18.00 instead of $54.00 |
-| `expired-coupon` | The expired code `OLD20` is accepted |
-| `order-confirmation` | After paying, the confirmation page says "Order not found" (it reads `?id=`, checkout sends `?order=`) |
-
-## Run it
-
-Requires Node 22.5+ (built-in SQLite), Google Chrome, [Kane CLI](https://www.testmuai.com/support/docs/kane-cli-introduction/) and a coding agent.
-
-```bash
-npm install -g @testmuai/kane-cli && kane-cli login     # free testmuai.com account
-kane-cli config project <id> && kane-cli config folder <id>   # once (or let the first run pick defaults)
-# coding agent: Claude Code (https://claude.com/claude-code, uses your login) or OpenCode (opencode auth login)
+```mermaid
+flowchart LR
+    A["🧪 Kane tests<br/>the journey<br/><i>real Chrome</i>"] -->|confirmed bug| B["📎 Evidence<br/><i>diagnosis, screenshots,<br/>network log</i>"]
+    B --> C["🤖 Agent fixes<br/><i>isolated worktree,<br/>file tools only</i>"]
+    C --> D["✅ Unit gate<br/><i>no regressions</i>"]
+    D --> E{"🔁 Kane reruns<br/>the same journey"}
+    E -->|passes| F["🛡 Verified"]
+    E -->|fails| X["❌ Stays a failure"]
+    F --> G["👤 You approve<br/>the merge"]
 ```
 
-```bash
-cd store && npm start                    # demo store on http://127.0.0.1:4300 (optional, for browsing)
-cd dashboard && npm install && npm run dev   # homepage on http://127.0.0.1:3100, dashboard at /app
+| | Step | What happens |
+|---|---|---|
+| 1 | **Kane tests** | Each journey is a plain-English Kane objective ending in one assertion. `kane-cli run --agent` drives real Chrome. |
+| 2 | **Evidence** | A `confirmed_product_bug` becomes a failure with Kane's finding, diagnosis, screenshots and network log. Kane's own errors are retried once and never sent for repair. |
+| 3 | **Agent fixes** | Claude Code (or OpenCode) patches the store in a git worktree with **no shell and no web**. Touching tests or objectives gets the patch **rejected**. |
+| 4 | **Unit gate** | No test that passed may fail, and at least one failing test must now pass. |
+| 5 | **Kane reruns** | The same objective on the patched store. **Only a Kane pass marks the repair verified.** |
+| 6 | **You approve** | Review the diff and Kane's before and after, then merge or discard. Nothing merges on its own. |
 
-# or from the command line
+## 🎬 See it in action
+
+A real run on the demo store, **Northwind Goods**.
+
+**1. The bug.** Three mugs at $18 should cost $54. The line total is right; the subtotal isn't.
+
+<img src="docs/images/02-cart-bug.jpg" alt="Cart with 3 Ceramic Mugs: line total $54.00, subtotal $18.00" width="100%" />
+
+**2. Kane catches it**, step by step in real Chrome, with a diagnosis the agent can act on: *"The cart updates the item quantity and line total but does not recalculate the subtotal."*
+
+<img src="docs/images/03-kane-found.jpg" alt="Kane's run with the failing assertion and diagnosis" width="100%" />
+
+**3. The rerun that didn't pass.** Claude Code's one-line fix was right, but Kane's first rerun failed on its own check. CheckoutGuard **refused to call it verified**. A failed rerun stays a failure.
+
+<img src="docs/images/04-first-rerun-not-verified.jpg" alt="Repair attempt 1: Kane's rerun failed, verdict Not verified" width="100%" />
+
+**4. Verified by Kane.** With the assertion anchored to the totals row, attempt 2 passed Kane's rerun. Only then did it turn *Verified*, still waiting for a person to approve.
+
+<img src="docs/images/05-verified-fix.jpg" alt="Repair attempt 2: verified by a second run of the same journey, with the one-line diff" width="100%" />
+
+📄 **[Read the full Kane run report for this repair →](https://checkoutguard-eight.vercel.app/evidence/kane-cart-total-live.html)**
+
+### The dashboard
+
+Every journey shows what the customer does, what Kane found, and where its fix stands, with one button to start a repair.
+
+<img src="docs/images/dashboard.jpg" alt="The CheckoutGuard dashboard: the loop with live numbers and the three checkout journeys" width="100%" />
+
+## ✅ Proven on real Kane CLI runs
+
+All three seeded bugs went round the full loop: **caught by Kane, fixed by Claude Code, verified by a Kane rerun.**
+
+| Bug | ❌ What Kane CLI reported | ✅ Fix | Kane rerun |
+|---|---|---|---|
+| [Cart subtotal](docs/evidence/kane-cart-total.html) | "After the mug quantity changed to 3, the cart still displayed a subtotal of $18.00 instead of $54.00." | `subtotal()` multiplies by quantity | 🟢 passed |
+| [Expired coupon](docs/evidence/kane-expired-coupon.html) | "The cart accepted OLD20 and applied a 20% discount instead of showing that the coupon had expired." | `checkCoupon()` checks the expiry date | 🟢 passed |
+| [Order confirmation](docs/evidence/kane-order-confirmation.html) | "After placing the order, checkout redirected to an Order not found page instead of showing the customer confirmation and order number." | the confirmation page reads `?order=` | 🟢 passed |
+
+The repair records (Kane's steps and diagnosis, the patch, the unit checks, the passing rerun) are in [`docs/evidence/`](docs/evidence/). The fixes were not kept on `main`, so the bugs stay seeded for anyone who wants to run the loop themselves. Each Kane run cost about 20 to 30 Kane credits.
+
+## ▶ Run it
+
+Requires **Node 22.5+** (built-in SQLite), **Google Chrome**, **[Kane CLI](https://www.testmuai.com/support/docs/kane-cli-introduction/)** and a coding agent (**[Claude Code](https://claude.com/claude-code)** or OpenCode).
+
+```bash
+npm install -g @testmuai/kane-cli && kane-cli login       # free testmuai.com account
+git clone https://github.com/BernardOnuh/checkoutguard
+cd checkoutguard/dashboard && npm install && npm run dev  # http://127.0.0.1:3100, dashboard at /app
+```
+
+Open **http://127.0.0.1:3100/app**, press **Run all journeys**, then **Fix it with the agent** on a failing one, and watch the repair record fill in live.
+
+<details>
+<summary><b>Command line</b></summary>
+
+```bash
+cd store && npm start                          # the demo store on http://127.0.0.1:4300 (optional, for browsing)
 node runner/src/cli.js test all
 node runner/src/cli.js repair <failureId>
 node runner/src/cli.js approve <attemptId>     # or: discard <attemptId>
-node runner/src/cli.js report <attemptId>      # self-contained HTML repair report
+node runner/src/cli.js report <attemptId>      # a self-contained HTML repair report
 node runner/src/cli.js status
 
-cd runner && npm test                          # the loop's guarantees on a throwaway clone, and the Kane adapter on recorded
-                                               # Kane output (no AI calls, no Kane credits)
+cd runner && npm test                          # the loop's guarantees, and the Kane adapter on recorded Kane output
+                                               # (no AI calls, no Kane credits)
 ```
 
-More: [architecture](docs/ARCHITECTURE.md) · [demo script](docs/DEMO.md)
+`kane-cli config project <id>` and `kane-cli config folder <id>` set where Kane files its runs (once; otherwise the first run picks defaults).
+</details>
 
-The dashboard and runner only accept requests from this machine. The runner runs code and git commands, so it is never exposed publicly.
-
-### Settings
+<details>
+<summary><b>Settings</b></summary>
 
 | Variable | Default | |
 |---|---|---|
-| `CG_TESTER` | `kane` when `kane-cli` is installed | `local` uses the stand-in headless-Chrome check instead (free; labelled *Local check* everywhere, never shown as Kane evidence) |
+| `CG_TESTER` | `kane` when `kane-cli` is installed | `local` uses a free stand-in headless-Chrome check, labelled *Local check* everywhere and never shown as Kane evidence |
 | `CG_KANE_TIMEOUT_S` | `300` | Kane run time limit |
-| `CG_AGENT` | `claude` if installed, else `opencode` | `patch:<file>` applies a hand-written patch instead (development only, no AI cost, labelled in the log) |
+| `CG_AGENT` | `claude` if installed, else `opencode` | `patch:<file>` applies a hand-written patch instead (development only, labelled in the log) |
 | `CG_MAX_ATTEMPTS` | `2` | Repair attempts per failure |
 | `CG_AGENT_TIMEOUT_MS` | `600000` | Agent time limit |
 | `CG_DATA_DIR` | `data/` | Run history (SQLite) and evidence |
 | `CG_ROOT` | repo root | Repository to test and repair |
+</details>
 
-## Safety
+<details>
+<summary><b>The demo store's seeded bugs</b></summary>
 
-- Payments use a fake provider that accepts only the test card 4242 4242 4242 4242; nothing is ever charged.
-- Repairs run in temporary git worktrees; the agent has no shell or web access; patches outside `store/src/` are rejected.
-- Attempts are capped, the original failure's evidence is kept, and merging always needs approval. Nothing is deployed automatically.
+| Scenario | Bug |
+|---|---|
+| `cart-total` | The subtotal ignores quantity: 3 mugs show $18.00 instead of $54.00 |
+| `expired-coupon` | The expired code `OLD20` is accepted |
+| `order-confirmation` | After paying, the confirmation page says "Order not found" (it reads `?id=`, checkout sends `?order=`) |
+</details>
 
-## Data model
+<details>
+<summary><b>Data model</b></summary>
 
 `projects` → `test_runs` (scenario, runner, target, status, steps) → `failures` (step, expected, actual, evidence) → `repair_attempts` (branch, worktree, diff, agent log, unit log, status) → `verifications` (rerun, verdict).
+</details>
+
+More: [architecture](docs/ARCHITECTURE.md) · [demo script](docs/DEMO.md) · [submission notes](docs/SUBMISSION.md)
+
+## 🔒 Safety
+
+- **Nothing is ever charged.** Payments use a fake provider that accepts only the test card 4242 4242 4242 4242.
+- **The agent is boxed in.** Temporary git worktrees, no shell, no web, and patches outside `store/src/` are rejected.
+- **A person decides.** Attempts are capped at 2, the original failure's evidence is kept, and merging always needs approval. Nothing deploys automatically.
+- **The runner stays local.** It runs code and git commands, so the dashboard only accepts requests from this machine. The [public site](https://checkoutguard-eight.vercel.app) serves the homepage, write-up, deck and evidence only.
+
+## 🗺 What's next
+
+- The loop on every pull request, in CI
+- More journeys: mobile, payment edge cases, API calls inside objectives
+- Kane tests committed and replayed
+
+<div align="center">
+<br/>
+<img src="docs/images/homepage.jpg" alt="The CheckoutGuard homepage" width="100%" />
+
+**Every checkout tested. Every fix verified.**
+
+</div>
