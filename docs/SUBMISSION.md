@@ -37,11 +37,11 @@ Live: https://checkoutguard-eight.vercel.app (homepage, intro film, repair recor
 | Show HN (own words, own account, links to repo or demo) | 2 | your post |
 | Reach bonus (any reply/repost/comment from outside the team) | 2 | — |
 
-Event hashtag: the site's code uses `#KaneCLIHackDay`; other online entrants use `#KaneCLIHackathon`. Using both is safe.
+From the official launch guide (kaneclihack.sh/o/launch): **X** uses `#KaneCLIHackathon #KaneCLI` (two at most, in the last post only), tags `@kane_cli` and `@testmuai`, never starts a post with an @mention, puts links only in the first and last posts, and attaches the demo video to post 1. **LinkedIn** uses `#KaneCLIHackathon #KaneCLI #AIAgents` at the end, tags the `@TestMu AI` page (picked from the dropdown), runs 1,100–1,600 characters, and uploads the video natively. **Hacker News**: no hashtags or handles, name Kane CLI, title starts "Show HN:", write the first comment yourself and stay to answer. The TestMu AI account must use the same email as the hackathon registration, or the entry can't be scored.
 
 ## X (thread)
 
-Images and text are in `~/Desktop/checkoutguard-thread/` and the chat. Post 1 must tag **@kane_cli** and carry the hashtags.
+Images are in `~/Desktop/checkoutguard-thread/`; the text is below the LinkedIn section's rules above. Attach the 3:34 demo video to post 1.
 
 ## LinkedIn
 
@@ -59,7 +59,7 @@ Images and text are in `~/Desktop/checkoutguard-thread/` and the chat. Post 1 mu
 >
 > Demo: [YouTube] · Site: checkoutguard-eight.vercel.app · Write-up: checkoutguard-eight.vercel.app/blog · Code: github.com/BernardOnuh/checkoutguard
 >
-> #KaneCLIHackathon #KaneCLIHackDay #KaneCLI #AIAgents
+> #KaneCLIHackathon #KaneCLI #AIAgents
 
 (Type `@TestMu AI` in the post and pick the company page from the list so it's a real tag.)
 
