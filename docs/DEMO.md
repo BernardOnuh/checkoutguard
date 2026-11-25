@@ -1,6 +1,6 @@
 # Demo script (3–5 minutes)
 
-Before recording: reset the store (`git checkout main`, bugs present), delete `data/`, start the dashboard, make sure Kane CLI is signed in (`kane-cli balance`) and Claude Code works (`claude --version`). Every run in the video must be labelled **Kane CLI**.
+Before recording: reset the store (`git checkout main`, bugs present), delete `data/`, start the dashboard (homepage at http://127.0.0.1:3100, dashboard at /app), make sure Kane CLI is signed in (`kane-cli balance`) and Claude Code works (`claude --version`). Every run in the video must be labelled **Kane CLI**.
 
 | Time | Show | Say |
 |---|---|---|

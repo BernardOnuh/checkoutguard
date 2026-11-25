@@ -59,7 +59,7 @@ kane-cli config project <id> && kane-cli config folder <id>   # once (or let the
 
 ```bash
 cd store && npm start                    # demo store on http://127.0.0.1:4300 (optional, for browsing)
-cd dashboard && npm install && npm run dev   # dashboard on http://127.0.0.1:3100
+cd dashboard && npm install && npm run dev   # homepage on http://127.0.0.1:3100, dashboard at /app
 
 # or from the command line
 node runner/src/cli.js test all
