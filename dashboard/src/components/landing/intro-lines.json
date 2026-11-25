@@ -1,0 +1,9 @@
+[
+ "This is CheckoutGuard. It keeps your checkout working.",
+ "When a checkout breaks, customers leave, and you may never find out. Here, three mugs at eighteen dollars should cost fifty-four. The cart says eighteen.",
+ "CheckoutGuard asks Kane CLI to shop the store in a real browser, just like a customer. Kane finds the bug and explains what went wrong.",
+ "Kane's finding goes to a coding agent. It fixes the store in a sandboxed copy, and it can't touch anything else.",
+ "Then Kane runs the same journey again. A fix only counts as verified when Kane passes it.",
+ "Nothing merges on its own. You check the change, see the before and after, and approve it.",
+ "Every checkout tested. Every fix verified. That's CheckoutGuard."
+]

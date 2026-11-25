@@ -1,29 +1,37 @@
 "use client";
-// "Watch intro": a one-minute film about CheckoutGuard, with a spoken voiceover (the browser's own speech synthesis,
-// so there are no audio files) and captions. The scenes replay the real cart repair from docs/evidence: the wrong
+// "Watch intro": a one-minute film about CheckoutGuard, with a voiceover and captions. The voice is Lily from
+// ElevenLabs when scripts/intro-voice.py has generated public/intro/, and the browser's own speech otherwise. The scenes replay the real cart repair from docs/evidence: the wrong
 // subtotal, Kane's finding, the one-line fix, Kane's rerun and the human approval. First-time visitors are asked once
 // whether they'd like to watch it; any "Watch intro" button opens it through the "cg:intro" event.
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Bot, Check, ChevronLeft, ChevronRight, FlaskConical, GitMerge, Globe, Loader2, Lock, Pause, Play, RotateCcw, ShieldCheck, Terminal, Volume2, VolumeX, X } from "lucide-react";
 import { Badge } from "@/components/logo";
+import LINES from "./intro-lines.json";
 
 type SceneProps = { t: number };
 
 const BEATS: { label: string; line: string; Scene: (p: SceneProps) => React.ReactNode }[] = [
-  { label: "", line: "This is CheckoutGuard. It keeps your checkout working.", Scene: Opener },
-  { label: "The problem", line: "When a checkout breaks, customers leave, and you may never find out. Here, three mugs at eighteen dollars should cost fifty-four. The cart says eighteen.", Scene: Cart },
-  { label: "Kane tests", line: "CheckoutGuard asks Kane CLI to shop the store in a real browser, just like a customer. Kane finds the bug and explains what went wrong.", Scene: Kane },
-  { label: "The agent fixes", line: "Kane's finding goes to a coding agent. It fixes the store in a sandboxed copy, and it can't touch anything else.", Scene: Agent },
-  { label: "Kane verifies", line: "Then Kane runs the same journey again. A fix only counts as verified when Kane passes it.", Scene: Verify },
-  { label: "You approve", line: "Nothing merges on its own. You check the change, see the before and after, and approve it.", Scene: Approve },
-  { label: "", line: "Every checkout tested. Every fix verified. That's CheckoutGuard.", Scene: End },
+  { label: "", line: LINES[0], Scene: Opener },
+  { label: "The problem", line: LINES[1], Scene: Cart },
+  { label: "Kane tests", line: LINES[2], Scene: Kane },
+  { label: "The agent fixes", line: LINES[3], Scene: Agent },
+  { label: "Kane verifies", line: LINES[4], Scene: Verify },
+  { label: "You approve", line: LINES[5], Scene: Approve },
+  { label: "", line: LINES[6], Scene: End },
 ];
 
 /** How long a beat lasts: about as long as its line takes to say, plus room for the scene to land. */
 const duration = (line: string) => Math.max(5200, line.split(" ").length * 390 + 1800);
 const DUR = BEATS.map(b => duration(b.line));
 const SEEN = "cg-intro-seen";
+
+/** Recorded narration, keyed by line text, from public/intro/voice.json (absent until the script has run). */
+let recorded: Promise<Record<string, string>> | null = null;
+const loadRecorded = () => (recorded ??= fetch("/intro/voice.json", { cache: "no-store" })
+  .then(r => (r.ok ? r.json() : { lines: [] }))
+  .then((m: { lines: { text: string; file: string }[] }) => Object.fromEntries(m.lines.map(l => [l.text, l.file])))
+  .catch(() => ({})));
 
 const remember = () => { try { localStorage.setItem(SEEN, "1"); } catch {} };
 const seen = () => { try { return localStorage.getItem(SEEN) === "1"; } catch { return true; } };
@@ -84,7 +92,10 @@ function IntroFilm({ onClose }: { onClose: () => void }) {
   const [finished, setFinished] = useState(false);
   const [take, setTake] = useState(0); // bumps to restart the current beat's voice
   const spoken = useRef(true);
+  const audio = useRef<HTMLAudioElement | null>(null);
+  const [files, setFiles] = useState<Record<string, string> | null>(null);
   const canSpeak = typeof window !== "undefined" && "speechSynthesis" in window;
+  useEffect(() => { loadRecorded().then(setFiles); }, []);
 
   const go = (n: number) => { setFinished(false); setI(Math.max(0, Math.min(BEATS.length - 1, n))); setT(0); setPaused(false); setTake(k => k + 1); };
   const replay = () => go(0);
@@ -99,10 +110,21 @@ function IntroFilm({ onClose }: { onClose: () => void }) {
 
   // the voice: one line per beat; a beat doesn't end until its line has been said (or after a safety margin)
   useEffect(() => {
+    if (files === null) { spoken.current = false; return; } // wait to know whether Lily's recordings exist
+    audio.current?.pause();
+    if (canSpeak) window.speechSynthesis.cancel();
+    if (muted || finished) { spoken.current = true; return; }
+    const file = files[BEATS[i].line];
+    if (file) {
+      const a = new Audio(file);
+      audio.current = a;
+      spoken.current = false;
+      a.onended = a.onerror = () => { spoken.current = true; };
+      a.play().catch(() => { spoken.current = true; });
+      return () => { a.onended = a.onerror = null; a.pause(); };
+    }
     if (!canSpeak) { spoken.current = true; return; }
     const s = window.speechSynthesis;
-    s.cancel();
-    if (muted || finished) { spoken.current = true; return; }
     spoken.current = false;
     const u = new SpeechSynthesisUtterance(BEATS[i].line);
     const v = pickVoice(); if (v) u.voice = v;
@@ -110,9 +132,10 @@ function IntroFilm({ onClose }: { onClose: () => void }) {
     u.onend = u.onerror = () => { spoken.current = true; };
     s.speak(u);
     return () => { u.onend = u.onerror = null; };
-  }, [i, muted, take, finished, canSpeak]);
+  }, [i, muted, take, finished, canSpeak, files]);
 
   useEffect(() => {
+    if (audio.current) { if (paused) audio.current.pause(); else if (!audio.current.ended) audio.current.play().catch(() => {}); }
     if (!canSpeak) return;
     if (paused) window.speechSynthesis.pause(); else window.speechSynthesis.resume();
   }, [paused, canSpeak]);
@@ -138,7 +161,7 @@ function IntroFilm({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; if ("speechSynthesis" in window) window.speechSynthesis.cancel(); };
+    return () => { document.body.style.overflow = prev; audio.current?.pause(); if ("speechSynthesis" in window) window.speechSynthesis.cancel(); };
   }, []);
 
   const beat = BEATS[i];
