@@ -24,6 +24,8 @@ const BEATS: { label: string; line: string; Scene: (p: SceneProps) => React.Reac
 /** How long a beat lasts: about as long as its line takes to say, plus room for the scene to land. */
 const duration = (line: string) => Math.max(5200, line.split(" ").length * 390 + 1800);
 const DUR = BEATS.map(b => duration(b.line));
+/** The pause after a line is said before the next scene starts. */
+const TAIL = 700;
 const SEEN = "cg-intro-seen";
 
 /** Recorded narration, keyed by line text, from public/intro/voice.json (absent until the script has run). */
@@ -92,10 +94,22 @@ function IntroFilm({ onClose }: { onClose: () => void }) {
   const [finished, setFinished] = useState(false);
   const [take, setTake] = useState(0); // bumps to restart the current beat's voice
   const spoken = useRef(true);
+  // A scene lasts as long as its narration (plus TAIL); until the voice's length is known, the estimate stands in.
+  const [dur, setDur] = useState(DUR[0]);
+  const tRef = useRef(0);
+  tRef.current = t;
+  useEffect(() => { setDur(DUR[i]); }, [i, take]);
   const audio = useRef<HTMLAudioElement | null>(null);
   const [files, setFiles] = useState<Record<string, string> | null>(null);
   const canSpeak = typeof window !== "undefined" && "speechSynthesis" in window;
-  useEffect(() => { loadRecorded().then(setFiles); }, []);
+  // Load every recording up front, so each scene's line starts the moment the scene does.
+  const preloaded = useRef(new Map<string, HTMLAudioElement>());
+  useEffect(() => {
+    loadRecorded().then(f => {
+      for (const file of Object.values(f)) { const a = new Audio(file); a.preload = "auto"; a.load(); preloaded.current.set(file, a); }
+      setFiles(f);
+    });
+  }, []);
 
   const go = (n: number) => { setFinished(false); setI(Math.max(0, Math.min(BEATS.length - 1, n))); setT(0); setPaused(false); setTake(k => k + 1); };
   const replay = () => go(0);
@@ -104,7 +118,8 @@ function IntroFilm({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     if (paused || finished) return;
     let last = performance.now();
-    const id = setInterval(() => { const now = performance.now(); setT(x => x + now - last); last = now; }, 50);
+    // take the step before handing it to the updater, which may run after `last` has moved on
+    const id = setInterval(() => { const now = performance.now(), step = now - last; last = now; setT(x => x + step); }, 50);
     return () => clearInterval(id);
   }, [paused, finished, i, take]);
 
@@ -116,12 +131,15 @@ function IntroFilm({ onClose }: { onClose: () => void }) {
     if (muted || finished) { spoken.current = true; return; }
     const file = files[BEATS[i].line];
     if (file) {
-      const a = new Audio(file);
+      const a = preloaded.current.get(file) ?? new Audio(file);
+      a.currentTime = 0;
       audio.current = a;
       spoken.current = false;
-      a.onended = a.onerror = () => { spoken.current = true; };
+      a.onloadedmetadata = () => { if (Number.isFinite(a.duration)) setDur(a.duration * 1000 + TAIL); };
+      a.onended = () => { spoken.current = true; setDur(tRef.current + TAIL); };
+      a.onerror = () => { spoken.current = true; };
       a.play().catch(() => { spoken.current = true; });
-      return () => { a.onended = a.onerror = null; a.pause(); };
+      return () => { a.onended = a.onerror = a.onloadedmetadata = null; a.pause(); };
     }
     if (!canSpeak) { spoken.current = true; return; }
     const s = window.speechSynthesis;
@@ -129,7 +147,8 @@ function IntroFilm({ onClose }: { onClose: () => void }) {
     const u = new SpeechSynthesisUtterance(BEATS[i].line);
     const v = pickVoice(); if (v) u.voice = v;
     u.rate = 1; u.pitch = 1;
-    u.onend = u.onerror = () => { spoken.current = true; };
+    u.onend = () => { spoken.current = true; setDur(tRef.current + TAIL); };
+    u.onerror = () => { spoken.current = true; };
     s.speak(u);
     return () => { u.onend = u.onerror = null; };
   }, [i, muted, take, finished, canSpeak, files]);
@@ -142,9 +161,9 @@ function IntroFilm({ onClose }: { onClose: () => void }) {
 
   // advance
   useEffect(() => {
-    if (finished || t < DUR[i] || !(spoken.current || t > DUR[i] * 1.8)) return;
+    if (finished || t < dur || !(spoken.current || t > dur * 1.8)) return;
     if (i < BEATS.length - 1) { setI(i + 1); setT(0); } else setFinished(true);
-  }, [t, i, finished]);
+  }, [t, i, finished, dur]);
 
   // keys, scroll lock, and silence on close
   useEffect(() => {
@@ -165,13 +184,13 @@ function IntroFilm({ onClose }: { onClose: () => void }) {
   }, []);
 
   const beat = BEATS[i];
-  const shownT = finished ? DUR[i] * 4 : t;
+  const shownT = finished ? dur * 4 : t;
 
   // captions: the line in sentences, each shown for its share of the beat
   const sentences = beat.line.split(/(?<=[.!?])\s+/);
   const total = beat.line.length;
   let acc = 0, cap = 0;
-  sentences.forEach((s, k) => { if (shownT >= (acc / total) * (DUR[i] - 1200)) cap = k; acc += s.length + 1; });
+  sentences.forEach((s, k) => { if (shownT >= (acc / total) * (dur - TAIL)) cap = k; acc += s.length + 1; });
 
   return (
     <div role="dialog" aria-modal="true" aria-label="Introduction to CheckoutGuard" className="intro-fade fixed inset-0 z-50 flex flex-col overflow-hidden bg-black text-ink">
@@ -181,7 +200,7 @@ function IntroFilm({ onClose }: { onClose: () => void }) {
         <div className="flex flex-1 gap-1.5" aria-hidden="true">
           {BEATS.map((_, k) => (
             <span key={k} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/15">
-              <i className="block h-full origin-left bg-white" style={{ transform: `scaleX(${finished || k < i ? 1 : k === i ? Math.min(1, t / DUR[i]) : 0})` }} />
+              <i className="block h-full origin-left bg-white" style={{ transform: `scaleX(${finished || k < i ? 1 : k === i ? Math.min(1, t / dur) : 0})` }} />
             </span>
           ))}
         </div>

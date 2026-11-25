@@ -1,0 +1,33 @@
+{
+ "voice": "Lily (ElevenLabs)",
+ "lines": [
+  {
+   "text": "This is CheckoutGuard. It keeps your checkout working.",
+   "file": "/intro/line-1-45d642d21500.mp3"
+  },
+  {
+   "text": "When a checkout breaks, customers leave, and you may never find out. Here, three mugs at eighteen dollars should cost fifty-four. The cart says eighteen.",
+   "file": "/intro/line-2-0fb5f2db4a8e.mp3"
+  },
+  {
+   "text": "CheckoutGuard asks Kane CLI to shop the store in a real browser, just like a customer. Kane finds the bug and explains what went wrong.",
+   "file": "/intro/line-3-4e3256035ab2.mp3"
+  },
+  {
+   "text": "Kane's finding goes to a coding agent. It fixes the store in a sandboxed copy, and it can't touch anything else.",
+   "file": "/intro/line-4-789e87239569.mp3"
+  },
+  {
+   "text": "Then Kane runs the same journey again. A fix only counts as verified when Kane passes it.",
+   "file": "/intro/line-5-e6cc950e60ca.mp3"
+  },
+  {
+   "text": "Nothing merges on its own. You check the change, see the before and after, and approve it.",
+   "file": "/intro/line-6-cfe35fc44575.mp3"
+  },
+  {
+   "text": "Every checkout tested. Every fix verified. That's CheckoutGuard.",
+   "file": "/intro/line-7-9a7abc098869.mp3"
+  }
+ ]
+}
