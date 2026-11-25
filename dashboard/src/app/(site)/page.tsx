@@ -7,6 +7,7 @@ import { Logo } from "@/components/logo";
 import { LoopDemo } from "@/components/loop-demo";
 import { Reveal, WordsIn } from "@/components/landing/motion";
 import { ProofCard, Sandbox } from "@/components/landing/scenes";
+import { IntroHost, WatchIntroButton } from "@/components/landing/intro";
 import { BeaconTile, CommandVisual, ListVisual, OrbVisual, SilkCanyon, TerminalVisual } from "@/components/landing/visuals";
 
 const REPO = "https://github.com/BernardOnuh/checkoutguard";
@@ -44,11 +45,13 @@ function Heading({ pill, title, sub }: { pill: string; title: string; sub?: stri
 export default function Home() {
   return (
     <div className="mono-site relative overflow-x-clip">
+      <IntroHost />
       {/* header */}
       <header className="fixed inset-x-0 top-0 z-30 px-3">
         <div className="mx-auto mt-3 flex h-14 max-w-6xl items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/50 px-4 backdrop-blur-xl sm:px-5">
           <Logo href="/" />
           <nav className="hidden items-center gap-7 text-[13px] text-mute md:flex">
+            <WatchIntroButton className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-white transition hover:bg-white/10" />
             <a href="#what" className="transition hover:text-white">Product</a>
             <a href="#how" className="transition hover:text-white">How it works</a>
             <a href="#provide" className="transition hover:text-white">Proof</a>
@@ -75,7 +78,7 @@ export default function Home() {
           <Reveal delay={700}>
             <div className="mt-9 flex flex-wrap justify-center gap-3">
               <Link href="/app" className="btn-light !rounded-full !px-6 !py-3">Open the dashboard<ArrowRight className="h-4 w-4" /></Link>
-              <a href="#how" className="btn-ghost !rounded-full !px-6 !py-3">How it works</a>
+              <WatchIntroButton className="btn-ghost !rounded-full !px-6 !py-3" />
             </div>
           </Reveal>
           <div className="mt-auto pb-10 pt-16"><BeaconTile /></div>

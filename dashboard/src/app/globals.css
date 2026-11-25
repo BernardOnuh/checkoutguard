@@ -91,3 +91,14 @@ body { @apply bg-bg text-ink antialiased; }
 .pill { display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 999px; border: 1px solid rgb(255 255 255 / 0.14); background: rgb(255 255 255 / 0.04); padding: 0.3rem 0.75rem; font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #bdbdbd; }
 .tile { border-radius: 22px; border: 1px solid rgb(255 255 255 / 0.09); background: linear-gradient(180deg, #121212, #090909); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 30px 60px -30px rgb(0 0 0 / 0.9); }
 @media (prefers-reduced-motion: reduce) { .silk-drift, .beam, .orb-pulse, .twinkle, .caret, .cube { animation: none !important; } .twinkle { opacity: 0.5; } }
+
+/* ---------- "Watch intro" film ---------- */
+.intro-fade { animation: intro-fade 0.7s ease both; }
+@keyframes intro-fade { from { opacity: 0; } }
+.intro-rise { animation: intro-rise 0.8s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes intro-rise { from { opacity: 0; transform: translateY(24px); } }
+.intro-scene { animation: intro-scene 0.9s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes intro-scene { from { opacity: 0; transform: translateY(16px) scale(0.98); filter: blur(6px); } }
+.intro-caption { animation: intro-caption 0.5s ease both; }
+@keyframes intro-caption { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .intro-fade, .intro-rise, .intro-scene, .intro-caption { animation: none !important; } }
