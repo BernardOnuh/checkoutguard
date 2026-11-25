@@ -19,12 +19,14 @@ export default async function RepairPage({ params }: { params: Promise<{ id: str
   const rerun = ver ? runner.run(ver.rerun_id) : null;
   const s = a.status;
   const agentDone = !(s === "running" && !a.patch_diff);
+  // "rejected" means either the scope check threw the patch out, or a person discarded a verified repair.
+  const discarded = s === "rejected" && rerun?.status === "passed";
   const stages: Stage[] = [
     { label: "Checkout test failed", state: "done", detail: `${failure.step}: expected ${failure.expected}, got ${failure.actual}`, Icon: XCircle },
-    { label: "Agent patched the code in an isolated worktree", state: s === "agent_failed" || s === "rejected" ? "failed" : agentDone ? "done" : "running", detail: s === "rejected" ? "Patch touched files outside store/src/ and was rejected." : s === "agent_failed" ? "No usable patch." : a.branch, Icon: Bot },
-    { label: "Unit checks", state: s === "unit_failed" ? "failed" : ["verified", "retest_failed", "merged"].includes(s) || rerun ? "done" : s === "running" && agentDone ? "running" : "waiting", detail: a.unit_log.split("\n").slice(0, 3).join(" · "), Icon: FlaskConical },
+    { label: "Agent patched the code in an isolated worktree", state: s === "agent_failed" || (s === "rejected" && !discarded) ? "failed" : agentDone ? "done" : "running", detail: s === "rejected" && !discarded ? "Patch touched files outside store/src/ and was rejected." : s === "agent_failed" ? "No usable patch." : a.branch, Icon: Bot },
+    { label: "Unit checks", state: s === "unit_failed" ? "failed" : ["verified", "retest_failed", "merged"].includes(s) || discarded || rerun ? "done" : s === "running" && agentDone ? "running" : "waiting", detail: a.unit_log.split("\n").slice(0, 3).join(" · "), Icon: FlaskConical },
     { label: "Same journey rerun", state: s === "retest_failed" ? "failed" : rerun?.status === "passed" ? "done" : rerun?.status === "running" ? "running" : "waiting", detail: rerun ? `${rerun.status} · ${rerun.runner === "kane" ? "Kane CLI" : "local check"}` : undefined, Icon: PlayCircle },
-    { label: s === "merged" ? "Merged after approval" : "Verdict", state: s === "verified" || s === "merged" ? "done" : ["unit_failed", "retest_failed", "agent_failed", "rejected"].includes(s) ? "failed" : "waiting", detail: s === "verified" ? "Verified: the original failure is resolved. Waiting for your approval." : s === "merged" ? `Merged into the main branch.` : undefined, Icon: ShieldCheck },
+    { label: s === "merged" ? "Merged after approval" : discarded ? "Verified, then discarded" : "Verdict", state: s === "verified" || s === "merged" || discarded ? "done" : ["unit_failed", "retest_failed", "agent_failed", "rejected"].includes(s) ? "failed" : "waiting", detail: s === "verified" ? "Verified: the original failure is resolved. Waiting for your approval." : discarded ? "Kane's rerun passed. A person discarded the patch instead of merging it." : s === "merged" ? `Merged into the main branch.` : undefined, Icon: ShieldCheck },
   ];
   const before = evidenceUrl(original.steps && JSON.parse(original.steps).find((x: { evidence?: string }) => x.evidence)?.evidence);
   const after = rerun ? evidenceUrl(JSON.parse(rerun.steps).find((x: { evidence?: string }) => x.evidence)?.evidence) : null;
@@ -35,25 +37,25 @@ export default async function RepairPage({ params }: { params: Promise<{ id: str
       <Link href={`/runs/${original.id}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-mute transition hover:text-ink"><ArrowLeft className="h-4 w-4" />Failed run</Link>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="eyebrow text-violet-300">Repair record · attempt {a.attempt} of {runner.maxAttempts}</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight">{sc?.title ?? original.scenario}</h1>
+          <p className="pill">Repair record · attempt {a.attempt} of {runner.maxAttempts}</p>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight">{sc?.title ?? original.scenario}</h1>
           <p className="mono mt-1 text-mute">{a.branch} · started {when(a.created_at)}</p>
         </div>
         <div className="flex items-center gap-2">
           {s !== "running" && <a href={`/api/report?id=${a.id}`} className="btn-ghost !py-1.5 text-xs"><Download className="h-3.5 w-3.5" />Report</a>}
-          <Pill status={s} />
+          <Pill status={discarded ? "discarded" : s} />
         </div>
       </div>
 
       <section className="card">
         <ol className="relative">
           {stages.map((st, i) => {
-            const color = st.state === "failed" || (i === 0 && st.state === "done") ? "rose" : st.state === "done" ? "emerald" : st.state === "running" ? "cyan" : "slate";
+            const color = st.state === "failed" || (i === 0 && st.state === "done") ? "bad" : st.state === "done" ? "good" : st.state === "running" ? "live" : "idle";
             return (
               <li key={i} className="relative flex gap-4 pb-7 last:pb-0">
-                {i < stages.length - 1 && <span className={`absolute left-[17px] top-10 h-[calc(100%-2.75rem)] w-px ${st.state === "done" ? "bg-gradient-to-b from-emerald-400/60 to-white/10" : "bg-white/10"}`} />}
-                <span className={`relative grid h-9 w-9 shrink-0 place-items-center rounded-full ring-1 ${color === "rose" ? "bg-rose-400/15 text-rose-300 ring-rose-400/30" : color === "emerald" ? "bg-emerald-400/15 text-emerald-300 ring-emerald-400/30" : color === "cyan" ? "bg-cyan-400/15 text-cyan-300 ring-cyan-400/30 shadow-[0_0_20px_-2px_rgb(34_211_238/0.6)]" : "bg-white/5 text-mute ring-white/10"}`}>
-                  {st.state === "waiting" ? <CircleDashed className="h-4 w-4" /> : st.state === "running" ? <st.Icon className="h-4 w-4 animate-pulse" /> : color === "rose" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                {i < stages.length - 1 && <span className={`absolute left-[17px] top-10 h-[calc(100%-2.75rem)] w-px ${st.state === "done" ? "bg-gradient-to-b from-white/70 to-white/10" : "bg-white/10"}`} />}
+                <span className={`relative grid h-9 w-9 shrink-0 place-items-center rounded-full ring-1 ${color === "bad" ? "bg-black text-neutral-300 ring-0 border border-dashed border-white/50" : color === "good" ? "bg-white text-black ring-white" : color === "live" ? "bg-white/15 text-white ring-white/50 shadow-[0_0_20px_-2px_rgb(255_255_255/0.6)]" : "bg-white/5 text-mute ring-white/10"}`}>
+                  {st.state === "waiting" ? <CircleDashed className="h-4 w-4" /> : st.state === "running" ? <st.Icon className="h-4 w-4 animate-pulse" /> : color === "bad" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
                 </span>
                 <div className="min-w-0 pt-1.5">
                   <p className={`font-medium ${st.state === "waiting" ? "text-mute" : ""}`}>{st.label}</p>
@@ -66,10 +68,10 @@ export default async function RepairPage({ params }: { params: Promise<{ id: str
       </section>
 
       {s === "verified" && (
-        <section className="card flex flex-wrap items-center justify-between gap-4 !border-emerald-400/25 !bg-emerald-400/[0.06]">
+        <section className="card flex flex-wrap items-center justify-between gap-4 !border-white/40 shadow-[0_0_60px_-24px_rgb(255_255_255/0.7)]">
           <div>
-            <p className="font-semibold text-emerald-200">Verified by a second run of the same journey.</p>
-            <p className="mt-0.5 text-sm text-emerald-100/70">Review the diff below. Nothing is merged until you approve it.</p>
+            <p className="flex items-center gap-2 font-semibold text-white"><ShieldCheck className="h-4 w-4" />Verified by a second run of the same journey.</p>
+            <p className="mt-0.5 text-sm text-mute">Review the diff below. Nothing is merged until you approve it.</p>
           </div>
           <div className="flex gap-2">
             <ActionButton action="discard" id={a.id} kind="btn-danger" confirm="Discard this repair? Its record stays, the branch is deleted."><Trash2 className="h-4 w-4" />Discard</ActionButton>
@@ -77,9 +79,14 @@ export default async function RepairPage({ params }: { params: Promise<{ id: str
           </div>
         </section>
       )}
-      {["unit_failed", "retest_failed", "agent_failed", "rejected"].includes(s) && (
-        <section className="card flex flex-wrap items-center justify-between gap-4 !border-rose-400/25 !bg-rose-400/[0.06]">
-          <p className="text-sm text-rose-100/80"><b className="text-rose-200">Not verified.</b> A failed retest stays a failure. {failure && runner.attemptsOf(failure.id).length < runner.maxAttempts ? "You can start another attempt from the failed run." : "The attempt limit is reached."}</p>
+      {discarded && (
+        <section className="card flex flex-wrap items-center gap-3 !border-white/25 text-sm text-neutral-300">
+          <ShieldCheck className="h-4 w-4 text-white" /><p><b className="text-white">Verified, not merged.</b> Kane's rerun passed, and a person chose to discard the patch. Nothing was merged.</p>
+        </section>
+      )}
+      {["unit_failed", "retest_failed", "agent_failed", "rejected"].includes(s) && !discarded && (
+        <section className="card flex flex-wrap items-center justify-between gap-4 !border-dashed !border-white/30">
+          <p className="text-sm text-neutral-300"><b className="text-white">Not verified.</b> A failed retest stays a failure. {failure && runner.attemptsOf(failure.id).length < runner.maxAttempts ? "You can start another attempt from the failed run." : "The attempt limit is reached."}</p>
           {s !== "merged" && <ActionButton action="discard" id={a.id} kind="btn-danger"><Trash2 className="h-4 w-4" />Clean up worktree</ActionButton>}
         </section>
       )}
@@ -91,11 +98,11 @@ export default async function RepairPage({ params }: { params: Promise<{ id: str
 
       <section className="grid gap-4 md:grid-cols-2">
         <div className="card space-y-3">
-          <div className="flex items-center justify-between"><p className="eyebrow text-rose-300">Before · {original.status}</p><TesterTag runner={original.runner} /></div>
+          <div className="flex items-center justify-between"><p className="eyebrow text-neutral-400">Before · {original.status}</p><TesterTag runner={original.runner} /></div>
           <BrowserShot src={before} tone="fail" url={`northwind.test · ${original.scenario}`} />
         </div>
         <div className="card space-y-3">
-          <div className="flex items-center justify-between"><p className="eyebrow text-emerald-300">After · {rerun?.status ?? "not run"}</p>{rerun && <TesterTag runner={rerun.runner} />}</div>
+          <div className="flex items-center justify-between"><p className="eyebrow text-white">After · {rerun?.status ?? "not run"}</p>{rerun && <TesterTag runner={rerun.runner} />}</div>
           {after ? <BrowserShot src={after} tone={rerun?.status === "passed" ? "pass" : "fail"} url={`worktree · ${a.branch}`} /> : <p className="rounded-xl bg-white/[0.03] p-10 text-center text-sm text-mute ring-1 ring-white/10">The retest hasn't run.</p>}
         </div>
       </section>

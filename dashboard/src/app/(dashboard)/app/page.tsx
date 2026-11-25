@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Gift, Play, Receipt, ShoppingCart, Sparkles, Wrench } from "lucide-react";
+import { ArrowUpRight, Gift, Play, Receipt, ShieldCheck, ShoppingCart, Sparkles, Wrench } from "lucide-react";
 import { runner } from "@/lib/runner";
 import { ActionButton, LiveRefresh } from "@/components/actions";
 import { Pill, Pipeline, TesterTag, when } from "@/components/ui";
@@ -37,8 +37,8 @@ export default function Overview() {
 
       <section className="flex flex-wrap items-end justify-between gap-6">
         <div className="max-w-2xl">
-          <p className="eyebrow text-violet-300">Northwind Goods · demo storefront</p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">Checkout <span className="grad-text">health</span></h1>
+          <span className="pill"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />Northwind Goods · demo storefront</span>
+          <h1 className="mt-5 text-4xl font-semibold tracking-[-0.03em] sm:text-6xl">Checkout <span className="text-neutral-400">health.</span></h1>
           <p className="mt-3 text-[15px] leading-relaxed text-mute">Each journey runs in a real browser. Failures become evidence, an agent patches the code in isolation, and the same journey reruns before anything can merge.</p>
         </div>
         <ActionButton action="test" id="all"><Play className="h-4 w-4" fill="currentColor" />Run all journeys</ActionButton>
@@ -46,27 +46,27 @@ export default function Overview() {
 
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
-          { k: "Journeys passing", v: `${passing}/${scenarios.length}`, tone: passing === scenarios.length ? "text-emerald-300" : "text-ink" },
-          { k: "Open failures", v: failing, tone: failing ? "text-rose-300" : "text-ink" },
-          { k: "Repairs verified", v: verified, tone: "text-ink" },
-          { k: "Awaiting approval", v: pending, tone: pending ? "text-amber-300" : "text-ink" },
+          { k: "Journeys passing", v: `${passing}/${scenarios.length}`, lit: passing === scenarios.length },
+          { k: "Open failures", v: failing, alert: failing > 0 },
+          { k: "Repairs verified", v: verified, lit: verified > 0 },
+          { k: "Awaiting approval", v: pending, alert: pending > 0 },
         ].map(t => (
-          <div key={t.k} className="card !p-4">
-            <p className="text-xs text-mute">{t.k}</p>
-            <p className={`mt-1 text-3xl font-bold tracking-tight ${t.tone}`}>{t.v}</p>
+          <div key={t.k} className={`card !p-5 ${t.lit ? "!border-white/30 shadow-[0_0_50px_-24px_rgb(255_255_255/0.6)]" : t.alert ? "!border-dashed !border-white/30" : ""}`}>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-mute">{t.k}</p>
+            <p className={`mt-2 text-4xl font-semibold tracking-tight ${t.lit || t.alert ? "text-white" : "text-neutral-400"}`}>{t.v}</p>
           </div>
         ))}
       </section>
 
       {tester !== "kane" && (
-        <div className="flex items-start gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-3 text-sm text-amber-100/90">
-          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
-          <p>Kane CLI isn't connected yet, so journeys run with the <b className="text-amber-200">local stand-in check</b>. Those runs are labelled and never count as Kane evidence.</p>
+        <div className="flex items-start gap-3 rounded-2xl border border-dashed border-white/25 bg-white/[0.03] px-4 py-3 text-sm text-neutral-300">
+          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-white" />
+          <p>Kane CLI isn't connected yet, so journeys run with the <b className="text-white">local stand-in check</b>. Those runs are labelled and never count as Kane evidence.</p>
         </div>
       )}
 
       <section>
-        <h2 className="mb-4 text-sm font-semibold text-mute">Journeys</h2>
+        <h2 className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-mute"><ShieldCheck className="h-3.5 w-3.5" />Journeys</h2>
         <div className="grid gap-4 md:grid-cols-3">
           {scenarios.map(s => {
             const r = latest[s.id];
@@ -75,10 +75,10 @@ export default function Overview() {
             const p = stageOf(s.id, r);
             const bad = r && r.status !== "passed" && r.status !== "running";
             return (
-              <article key={s.id} className={`card group relative flex flex-col gap-5 overflow-hidden transition hover:-translate-y-0.5 hover:border-white/15`}>
-                <div className={`pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full blur-3xl ${bad ? "bg-rose-500/15" : r?.status === "passed" ? "bg-emerald-500/15" : "bg-violet-500/10"}`} />
+              <article key={s.id} className={`card group relative flex flex-col gap-5 overflow-hidden transition hover:-translate-y-0.5 hover:border-white/25 ${bad ? "!border-dashed !border-white/25" : ""}`}>
+                <div className={`pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full blur-3xl ${r?.status === "passed" ? "bg-white/15" : "bg-white/[0.06]"}`} />
                 <div className="relative flex items-start justify-between gap-3">
-                  <span className={`grid h-11 w-11 place-items-center rounded-xl ring-1 ${bad ? "bg-rose-400/10 text-rose-300 ring-rose-400/20" : "bg-white/5 text-ink ring-white/10"}`}><Icon className="h-5 w-5" /></span>
+                  <span className={`grid h-11 w-11 place-items-center rounded-xl ring-1 ${r?.status === "passed" ? "bg-white text-black ring-white" : "bg-white/5 text-ink ring-white/15"}`}><Icon className="h-5 w-5" /></span>
                   <Pill status={r?.status ?? "none"} />
                 </div>
                 <div className="relative">
@@ -86,15 +86,15 @@ export default function Overview() {
                   <p className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-mute">{s.objective}</p>
                 </div>
                 {f ? (
-                  <div className="relative rounded-xl bg-black/30 p-3.5 ring-1 ring-rose-400/15">
-                    <p className="text-xs font-medium text-rose-300">{f.step}</p>
+                  <div className="relative rounded-xl border border-dashed border-white/20 bg-black/40 p-3.5">
+                    <p className="text-xs font-medium text-neutral-300">{f.step}</p>
                     <div className="mt-2 grid grid-cols-2 gap-2">
-                      <div><p className="text-[10px] uppercase tracking-wider text-mute">Expected</p><p className="mono mt-0.5 !text-[13px] text-emerald-300">{f.expected}</p></div>
-                      <div><p className="text-[10px] uppercase tracking-wider text-mute">Actual</p><p className="mono mt-0.5 !text-[13px] text-rose-300">{f.actual}</p></div>
+                      <div><p className="text-[10px] uppercase tracking-wider text-mute">Expected</p><p className="mono mt-0.5 !text-[13px] text-white">{f.expected}</p></div>
+                      <div><p className="text-[10px] uppercase tracking-wider text-mute">Actual</p><p className="mono mt-0.5 !text-[13px] text-neutral-400">{f.actual}</p></div>
                     </div>
                   </div>
                 ) : r?.status === "passed" ? (
-                  <p className="relative rounded-xl bg-emerald-400/[0.07] p-3.5 text-sm text-emerald-200 ring-1 ring-emerald-400/15">All checks passed.</p>
+                  <p className="relative rounded-xl bg-white/[0.08] p-3.5 text-sm text-white ring-1 ring-white/30">All checks passed.</p>
                 ) : null}
                 {p.stage >= 0 && <div className="relative"><Pipeline stage={p.stage} failedAt={p.failedAt} /></div>}
                 <div className="relative mt-auto space-y-3 pt-1">
@@ -112,7 +112,7 @@ export default function Overview() {
 
       <section>
         <div className="mb-4 flex items-baseline justify-between">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-mute"><Wrench className="h-4 w-4" />Repair attempts</h2>
+          <h2 className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-mute"><Wrench className="h-3.5 w-3.5" />Repair attempts</h2>
           <span className="text-xs text-mute">Max {runner.maxAttempts} per failure · merging needs your approval</span>
         </div>
         <div className="card !p-0 overflow-hidden">

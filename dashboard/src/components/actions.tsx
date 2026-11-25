@@ -22,7 +22,7 @@ export function ActionButton({ action, id, children, kind = "btn-primary", confi
   return (
     <span className="inline-flex flex-col gap-1">
       <button className={kind} onClick={go} disabled={busy}>{busy && <Loader2 className="h-4 w-4 animate-spin" />}{children}</button>
-      {error && <span className="max-w-xs text-xs text-rose-700">{error}</span>}
+      {error && <span className="max-w-xs text-xs text-neutral-300">{error}</span>}
     </span>
   );
 }

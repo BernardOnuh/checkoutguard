@@ -21,11 +21,11 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   return (
     <div className="space-y-6">
       <LiveRefresh active={run.status === "running" || attempts.some(a => a.status === "running")} />
-      <Link href={repairOf ? `/repairs/${repairOf}` : "/"} className="inline-flex items-center gap-1.5 text-sm font-medium text-mute transition hover:text-ink"><ArrowLeft className="h-4 w-4" />{repairOf ? "Repair record" : "All journeys"}</Link>
+      <Link href={repairOf ? `/repairs/${repairOf}` : "/app"} className="inline-flex items-center gap-1.5 text-sm font-medium text-mute transition hover:text-ink"><ArrowLeft className="h-4 w-4" />{repairOf ? "Repair record" : "All journeys"}</Link>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="eyebrow text-violet-300">{repairOf ? "Retest of a repair" : "Test run"} · <span className="mono normal-case tracking-normal">{run.id}</span></p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">{sc?.title ?? run.scenario}</h1>
+          <p className="pill">{repairOf ? "Retest of a repair" : "Test run"} · <span className="mono normal-case tracking-normal">{run.id}</span></p>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight">{sc?.title ?? run.scenario}</h1>
           <p className="mt-1 text-sm text-mute">{when(run.started_at)} · <TesterTag runner={run.runner} /></p>
         </div>
         <Pill status={run.status} />
@@ -41,11 +41,11 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
             <h2 className="font-semibold">Checks</h2>
             <ul className="mt-3 space-y-3">
               {steps.map((s, i) => (
-                <li key={i} className={`rounded-xl p-3.5 text-sm ring-1 ${s.status === "passed" ? "bg-emerald-400/[0.06] ring-emerald-400/15" : "bg-rose-400/[0.06] ring-rose-400/15"}`}>
-                  <p className="flex items-center gap-2 font-semibold">{s.status === "passed" ? <CheckCircle2 className="h-4 w-4 text-emerald-300" /> : <XCircle className="h-4 w-4 text-rose-300" />}{s.name}</p>
+                <li key={i} className={`rounded-xl p-3.5 text-sm ring-1 ${s.status === "passed" ? "bg-white/[0.06] ring-white/30" : "bg-transparent ring-0 border border-dashed border-white/25"}`}>
+                  <p className="flex items-center gap-2 font-semibold">{s.status === "passed" ? <CheckCircle2 className="h-4 w-4 text-white" /> : <XCircle className="h-4 w-4 text-neutral-400" />}{s.name}</p>
                   <dl className="mt-2 grid grid-cols-[72px_1fr] gap-x-2 gap-y-0.5 text-[13px]">
-                    <dt className="text-mute">Expected</dt><dd className="mono !text-[13px] text-emerald-300">{s.expected}</dd>
-                    <dt className="text-mute">Actual</dt><dd className={`mono !text-[13px] ${s.status === "passed" ? "text-emerald-300" : "text-rose-300"}`}>{s.actual}</dd>
+                    <dt className="text-mute">Expected</dt><dd className="mono !text-[13px] text-white">{s.expected}</dd>
+                    <dt className="text-mute">Actual</dt><dd className={`mono !text-[13px] ${s.status === "passed" ? "text-white" : "text-neutral-400"}`}>{s.actual}</dd>
                   </dl>
                 </li>
               ))}
