@@ -1,0 +1,245 @@
+<!doctype html>
+<!-- CheckoutGuard explainer: motion graphics drawn from a clock. render(t) draws the frame at t seconds; timeline.js
+     (written by build.py from Lily's narration) gives each scene its start and length, and the captions. -->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="timeline.js"></script>
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{width:1920px;height:1080px;background:#000;overflow:hidden;color:#f5f5f5;font-family:Geist,Inter,system-ui,sans-serif}
+#bg{position:absolute;inset:0}
+#stage{position:absolute;inset:0}
+#cap{position:absolute;left:0;right:0;bottom:56px;text-align:center}
+#cap span{display:inline-block;max-width:1400px;padding:14px 28px;border-radius:18px;background:rgba(0,0,0,.72);font-size:34px;line-height:1.35;font-weight:500}
+.abs{position:absolute}
+.card{position:absolute;border-radius:28px;border:1.5px solid rgba(255,255,255,.12);background:linear-gradient(#141414,#0a0a0a);box-shadow:0 40px 80px -30px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.06)}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.lbl{font-size:18px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#9a9a9a}
+.pill{display:inline-flex;align-items:center;gap:10px;border-radius:999px;border:1.5px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);padding:10px 22px;font-size:20px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#cfcfcf}
+</style></head><body>
+<svg id="bg" viewBox="0 0 1920 1080" preserveAspectRatio="none"></svg>
+<div id="stage"></div>
+<div id="cap"></div>
+<script>
+const W = "#f5f5f5", G = "#4ade80", R = "#f87171", M = "#8a8a8a";
+const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const p = (u, a, b) => cl((u - a) / (b - a));
+const eo = x => 1 - Math.pow(1 - x, 3);
+const eio = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const back = x => { const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const show = (u, a, dur = .6) => eo(p(u, a, a + dur));            // 0→1 fade/slide in from time a
+const inStyle = (k, dy = 24) => `opacity:${k};transform:translateY(${(1 - k) * dy}px)`;
+
+const BADGE = `<svg viewBox="0 0 200 200" width="100%" height="100%"><defs><path id="top" d="M 40,100 A 60,60 0 0 1 160,100"/><path id="bot" d="M 24,100 A 76,76 0 0 0 176,100"/></defs><circle cx="100" cy="100" r="96" fill="#fff"/><circle cx="100" cy="100" r="89" fill="none" stroke="#000" stroke-width="1.6" stroke-opacity=".35"/><g fill="#000" font-family="Geist, Inter, Arial, sans-serif" font-weight="800" font-size="21" letter-spacing="3.2"><text><textPath href="#top" startOffset="50%" text-anchor="middle">CHECKOUT</textPath></text><text><textPath href="#bot" startOffset="50%" text-anchor="middle">GUARD</textPath></text></g><g fill="#000"><path d="M28 100l2.4 5 5.4.6-4 3.7 1.1 5.3-4.9-2.7-4.9 2.7 1.1-5.3-4-3.7 5.4-.6z" transform="translate(0 -7)"/><path d="M172 100l2.4 5 5.4.6-4 3.7 1.1 5.3-4.9-2.7-4.9 2.7 1.1-5.3-4-3.7 5.4-.6z" transform="translate(0 -7)"/></g><g fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"><path d="M64 72 A 46 46 0 0 1 136 72"/><path d="M64 128 A 46 46 0 0 0 136 128"/></g><path d="M84 92 v-9 a16 16 0 0 1 32 0 v9" fill="none" stroke="#000" stroke-width="7"/><rect x="74" y="90" width="52" height="38" rx="7" fill="#000"/><path d="m88 109 8 8 16-17" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+/* ---------- little drawings ---------- */
+const mug = (x, y, s = 1, o = 1) => `<svg class="abs" style="left:${x}px;top:${y}px;opacity:${o}" width="${90 * s}" height="${90 * s}" viewBox="0 0 90 90"><path d="M14 22h46v40a14 14 0 0 1-14 14H28a14 14 0 0 1-14-14z" fill="${W}"/><path d="M60 32h8a12 12 0 0 1 0 24h-8" fill="none" stroke="${W}" stroke-width="7"/><path d="M28 6c-4 5 4 8 0 13M42 6c-4 5 4 8 0 13" stroke="${M}" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
+const cart = (x, y, s = 1) => `<svg class="abs" style="left:${x}px;top:${y}px" width="${340 * s}" height="${280 * s}" viewBox="0 0 340 280"><path d="M10 30h50l40 170h190l30-130H80" fill="none" stroke="${W}" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/><circle cx="120" cy="245" r="20" fill="${W}"/><circle cx="270" cy="245" r="20" fill="${W}"/></svg>`;
+const robot = (x, y, s = 1) => `<svg class="abs" style="left:${x}px;top:${y}px" width="${150 * s}" height="${150 * s}" viewBox="0 0 150 150"><line x1="75" y1="10" x2="75" y2="34" stroke="${W}" stroke-width="6"/><circle cx="75" cy="10" r="8" fill="${W}"/><rect x="20" y="34" width="110" height="88" rx="24" fill="none" stroke="${W}" stroke-width="8"/><circle cx="55" cy="76" r="10" fill="${W}"/><circle cx="95" cy="76" r="10" fill="${W}"/><path d="M52 102h46" stroke="${W}" stroke-width="7" stroke-linecap="round"/></svg>`;
+const person = (x, y, s = 1, o = 1, c = W) => `<svg class="abs" style="left:${x}px;top:${y}px;opacity:${o}" width="${110 * s}" height="${150 * s}" viewBox="0 0 110 150"><circle cx="55" cy="36" r="26" fill="${c}"/><path d="M8 146a47 47 0 0 1 94 0z" fill="${c}"/></svg>`;
+const mark = (ok, size = 56) => `<span style="display:inline-grid;place-items:center;width:${size}px;height:${size}px;border-radius:50%;background:${ok ? G : R};color:#000;font-weight:800;font-size:${size * .55}px;flex:none">${ok ? "✓" : "✕"}</span>`;
+const lock = (s = 22, c = W) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3" fill="none" stroke="${c}" stroke-width="2.4"/><rect x="4" y="11" width="16" height="11" rx="2.5" fill="${c}"/></svg>`;
+const cursor = (x, y, press = 0) => `<svg class="abs" style="left:${x}px;top:${y}px;transform:scale(${1 - press * .15})" width="40" height="40" viewBox="0 0 24 24"><path d="M5 2.5l14 8.2-6.3 1.7-3.3 6.1z" fill="#fff" stroke="#111" stroke-width="1.3" stroke-linejoin="round"/></svg>`;
+function browser(x, y, w, h, inner, border = "rgba(255,255,255,.16)", label = "northwind.test / cart") {
+  return `<div class="abs" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;border-radius:24px;border:2px solid ${border};background:#0c0c0c;overflow:hidden;box-shadow:0 40px 90px -30px rgba(0,0,0,.95)">
+    <div style="height:54px;display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1.5px solid rgba(255,255,255,.08)">
+      <i style="width:13px;height:13px;border-radius:50%;background:rgba(255,255,255,.4)"></i><i style="width:13px;height:13px;border-radius:50%;background:rgba(255,255,255,.25)"></i><i style="width:13px;height:13px;border-radius:50%;background:rgba(255,255,255,.15)"></i>
+      <span class="mono" style="margin-left:14px;flex:1;border-radius:10px;background:rgba(255,255,255,.06);padding:6px 14px;font-size:17px;color:${M}">${label}</span>
+    </div><div style="position:relative;height:${h - 54}px">${inner}</div></div>`;
+}
+/** A cart page inside a browser: three mugs, then the subtotal in the given colour (null: neutral). */
+function cartPage(sub, color, extra = "") {
+  return `<div style="padding:34px 40px;font-size:26px">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:22px;border-bottom:1.5px solid rgba(255,255,255,.08)"><span>☕ Ceramic Mug</span><span class="mono" style="color:${M}">$18.00 × <b style="color:${W}">3</b></span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:26px"><span style="color:${M}">Subtotal</span><span class="mono" style="font-size:40px;font-weight:600;color:${color || W};${color === R ? "text-shadow:0 0 30px rgba(248,113,113,.6)" : color === G ? "text-shadow:0 0 30px rgba(74,222,128,.6)" : ""}">${sub}</span></div>${extra}</div>`;
+}
+
+/* ---------- scenes: each gets u (seconds into the scene) and d (its length) ---------- */
+const SCENE = {
+  cost(u, d) {
+    let h = "";
+    h += `<div class="abs" style="left:250px;top:150px;${inStyle(show(u, .1))}"><span class="pill">The cost of a broken checkout</span></div>`;
+    h += cart(260, 430, 1.25);
+    [0, 1, 2].forEach(k => {
+      const a = .7 + k * .55, q = back(p(u, a, a + .7));
+      if (u > a) h += mug(385 + k * 82, lerp(-140, 545, q), .95, cl((u - a) * 4));
+    });
+    const r = show(u, 2.4, .7);
+    const shake = u > 3.3 && u < 4.1 ? Math.sin(u * 60) * 8 * (1 - p(u, 3.3, 4.1)) : 0;
+    h += `<div class="card" style="left:1010px;top:300px;width:640px;padding:40px 44px;${inStyle(r, 40)}">
+      <div class="lbl">Your cart</div>
+      <div style="display:flex;justify-content:space-between;margin-top:26px;font-size:30px"><span>☕ Ceramic Mug × 3</span><span class="mono" style="color:${M}">$18.00 each</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:30px;padding-top:26px;border-top:1.5px dashed rgba(255,255,255,.15)">
+        <span style="font-size:30px;color:${M}">Subtotal</span>
+        <span class="mono" style="font-size:64px;font-weight:600;color:${u > 3.3 ? R : W};transform:translateX(${shake}px);${u > 3.3 ? "text-shadow:0 0 40px rgba(248,113,113,.6)" : ""}">$18.00</span></div>
+      <div style="margin-top:16px;text-align:right;font-size:26px;color:${G};${inStyle(show(u, 4.2))}">should be $54.00</div></div>`;
+    const leave = p(u, d - 3.6, d - 1.4);
+    if (u > d - 4) {
+      h += person(lerp(1180, 1560, eio(leave)), 760, .7, 1 - leave * .9);
+      h += `<div class="abs mono" style="left:1440px;top:170px;font-size:72px;font-weight:600;color:${R};${inStyle(show(u, d - 2.6))}">−1 sale</div>`;
+    }
+    return h;
+  },
+
+  ships(u, d) {
+    let h = `<div class="abs" style="left:0;right:0;top:140px;text-align:center;${inStyle(show(u, .1))}"><span class="pill">Why it ships</span></div>`;
+    const a = show(u, .5, .7), b = show(u, 2.2, .7), c = show(u, 4.2, .7);
+    h += `<div class="card" style="left:150px;top:330px;width:480px;height:400px;padding:36px;${inStyle(a, 40)}"><div class="lbl">Unit tests</div>
+      <div class="mono" style="margin-top:30px;font-size:26px;line-height:2;color:${G}">${["✓ pricing", "✓ coupons", "✓ checkout", "✓ 12 passing"].map((s, k) => `<div style="opacity:${show(u, .9 + k * .3)}">${s}</div>`).join("")}</div></div>`;
+    h += `<div class="abs" style="left:770px;top:420px;${inStyle(b, 40)}">${robot(0, 0, 1.6)}</div>
+      <div class="abs" style="left:700px;top:300px;padding:16px 30px;border-radius:24px;background:${W};color:#000;font-size:36px;font-weight:700;${inStyle(show(u, 2.8), 16)}">Done ${mark(true, 40)}</div>`;
+    const glow = u > 6 ? .5 + .5 * Math.sin(u * 5) : 0;
+    h += `<div style="${inStyle(c, 40)}">${browser(1240, 330, 540, 400, cartPage("$18.00", u > 5 ? R : null), `rgba(248,113,113,${.25 + glow * .5})`)}
+      <div class="abs" style="left:1240px;top:750px;width:540px;text-align:center;font-size:28px;color:${R}">Nobody opened the real cart</div></div>`;
+    return h;
+  },
+
+  idea(u, d) {
+    const k = back(p(u, .1, 1.1));
+    let h = `<div class="abs" style="left:50%;top:220px;width:340px;height:340px;margin-left:-170px;transform:scale(${k});filter:drop-shadow(0 0 70px rgba(255,255,255,.5))">${BADGE}</div>`;
+    h += `<div class="abs" style="left:0;right:0;top:620px;text-align:center;font-size:84px;font-weight:600;letter-spacing:-.03em;line-height:1.1">
+      <div style="color:${M};${inStyle(show(u, 1.5))}">Not the agent.</div><div style="${inStyle(show(u, 2.6))}">A real browser.</div></div>`;
+    return h;
+  },
+
+  kane(u, d) {
+    const steps = ["Open the store", "Add the Ceramic Mug", "Set quantity to 3", "Click Update", "Check: Subtotal is $54.00"];
+    const at = k => 1.2 + k * .95;
+    const failed = u > at(4) + .4;
+    let h = `<div class="abs" style="left:160px;top:120px;${inStyle(show(u, .1))}"><span class="pill">Kane CLI · real Chrome</span></div>`;
+    const qty = u > at(2) + .3 ? 3 : 1;
+    const inner = `<div style="padding:34px 40px;font-size:26px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:22px;border-bottom:1.5px solid rgba(255,255,255,.08)"><span>☕ Ceramic Mug</span>
+        <span style="display:flex;gap:12px;align-items:center"><span class="mono" style="border:1.5px solid rgba(255,255,255,.2);border-radius:10px;padding:4px 16px">${qty}</span><span style="border:1.5px solid rgba(255,255,255,.2);border-radius:10px;padding:4px 16px;font-size:20px">Update</span></span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:26px"><span style="color:${M}">Subtotal</span><span class="mono" style="font-size:40px;font-weight:600;color:${failed ? R : W}">$18.00</span></div></div>`;
+    h += `<div style="${inStyle(show(u, .3, .7), 40)}">${browser(160, 230, 860, 420, inner, failed ? "rgba(248,113,113,.6)" : "rgba(255,255,255,.16)")}</div>`;
+    // the cursor visits each step's target
+    const pts = [[600, 330], [700, 400], [790, 380], [905, 380], [880, 520]];
+    let cx = 900, cy = 600;
+    pts.forEach(([x, y], k) => { const q = eio(p(u, at(k) - .7, at(k) - .1)); cx = lerp(cx, x, q); cy = lerp(cy, y, q); });
+    if (u > .8 && !failed) h += cursor(cx, cy, u % 0.95 < .15 ? 1 : 0);
+    h += `<div class="abs" style="left:1110px;top:240px;width:660px">${steps.map((s, k) => {
+      const v = show(u, at(k), .4), last = k === 4;
+      return `<div style="display:flex;align-items:center;gap:20px;padding:16px 0;font-size:30px;${inStyle(v, 14)};${last && failed ? `color:${R}` : ""}">${last ? (failed ? mark(false, 44) : `<span style="width:44px;height:44px;border-radius:50%;border:2px dashed ${M}"></span>`) : mark(true, 44)}${s}</div>`;
+    }).join("")}</div>`;
+    h += `<div class="card" style="left:1110px;top:700px;width:660px;padding:26px 30px;border-color:rgba(248,113,113,.45);${inStyle(show(u, at(4) + 1.1), 30)}">
+      <div class="lbl" style="color:${R}">Kane's diagnosis</div><div style="margin-top:10px;font-size:27px;line-height:1.4">The subtotal isn't recalculated after <b>Update</b>.</div></div>`;
+    return h;
+  },
+
+  agent(u, d) {
+    let h = `<div class="abs" style="left:160px;top:120px;${inStyle(show(u, .1))}"><span class="pill">The coding agent, boxed in</span></div>`;
+    const fly = eio(p(u, 1.2, 2.6));
+    const ex = lerp(170, 820, fly), ey = lerp(330, 300, fly), es = lerp(1, .55, fly);
+    h += `<div class="card" style="left:760px;top:260px;width:1000px;height:560px;border:3px dashed rgba(255,255,255,.3);background:rgba(255,255,255,.02);${inStyle(show(u, .4), 30)}">
+      <div class="lbl" style="position:absolute;left:36px;top:-14px;background:#000;padding:0 14px">Its own copy of the store</div></div>`;
+    h += robot(820, 350, .9);
+    const code = ["export function subtotal(lines) {", "  for (const line of lines) {", "    cents += product.priceCents"];
+    const typed = " * line.qty", n = Math.floor(cl((u - 5.2) / 1.1) * typed.length);
+    h += `<div class="abs mono" style="left:990px;top:350px;width:720px;padding:28px 30px;border-radius:20px;background:#050505;border:1.5px solid rgba(255,255,255,.1);font-size:27px;line-height:1.7;${inStyle(show(u, 2.8), 20)}">
+      ${code.map((l, k) => `<div style="white-space:pre;color:${k === 2 ? W : M}">${l}${k === 2 ? `<span style="color:${G};text-shadow:0 0 18px rgba(74,222,128,.7)">${typed.slice(0, n)}</span>${u > 5 && u < 6.6 && Math.floor(u * 3) % 2 ? "|" : ""};` : ""}</div>`).join("")}
+      <div style="color:${M}">  }</div></div>`;
+    ["shell", "web", "tests/"].forEach((l, k) => {
+      h += `<div class="abs" style="left:${1000 + k * 230}px;top:700px;display:flex;align-items:center;gap:12px;padding:12px 22px;border-radius:999px;border:2px dashed rgba(248,113,113,.6);color:${R};font-size:26px;${inStyle(show(u, 3.4 + k * .45), 16)}">${lock(24, R)}<s>${l}</s></div>`;
+    });
+    if (fly < 1 || u < 3) h += `<div class="card" style="left:${ex}px;top:${ey}px;width:460px;padding:26px;transform:scale(${es});transform-origin:top left;opacity:${1 - p(u, 2.5, 2.9)};border-color:rgba(248,113,113,.45)">
+      <div class="lbl">📎 Kane's evidence</div>
+      <div style="margin-top:16px;display:flex;gap:16px"><div style="width:150px;height:100px;border-radius:12px;background:#1c1c1c;display:grid;place-items:center" class="mono"><span style="color:${R};font-size:22px">$18.00</span></div>
+      <div style="font-size:21px;line-height:1.5;color:#cfcfcf">Failed step<br>Diagnosis<br>Screenshots · network log</div></div></div>`;
+    return h;
+  },
+
+  verify(u, d) {
+    let h = `<div class="abs" style="left:160px;top:120px;${inStyle(show(u, .1))}"><span class="pill">Kane reruns the same journey</span></div>`;
+    const flip = u > 2.6;
+    h += `<div style="${inStyle(show(u, .3), 30)}">${browser(140, 260, 620, 330, cartPage(flip ? "$54.00" : "$18.00", flip ? G : null), flip ? "rgba(74,222,128,.55)" : "rgba(255,255,255,.16)", "patched copy / cart")}</div>`;
+    // the fork: pass → verified, fail → stays a failure
+    const draw = eo(p(u, 3.2, 4.2));
+    h += `<svg class="abs" style="left:0;top:0" width="1920" height="1080" viewBox="0 0 1920 1080">
+      <path d="M770 425 H 930" stroke="rgba(255,255,255,.5)" stroke-width="5" stroke-dasharray="${draw * 200} 400"/>
+      <path d="M1060 425 C 1180 425, 1180 300, 1320 300" fill="none" stroke="${G}" stroke-width="5" stroke-opacity=".8" stroke-dasharray="${draw * 400} 600"/>
+      <path d="M1060 425 C 1180 425, 1180 560, 1320 560" fill="none" stroke="${R}" stroke-width="5" stroke-opacity=".6" stroke-dasharray="${draw * 400} 600"/></svg>`;
+    h += `<div class="abs" style="left:930px;top:360px;width:130px;height:130px;transform:rotate(45deg);border:3px solid rgba(255,255,255,.6);border-radius:18px;background:#0c0c0c;opacity:${draw}"></div>
+      <div class="abs" style="left:930px;top:400px;width:130px;text-align:center;font-size:22px;font-weight:600;opacity:${draw}">Kane<br>rerun</div>`;
+    const pass = eo(p(u, 4.4, 5.4));
+    h += `<div class="card" style="left:1330px;top:230px;width:440px;padding:24px 28px;display:flex;align-items:center;gap:20px;border-color:rgba(74,222,128,${.2 + pass * .5});box-shadow:0 0 ${pass * 80}px -20px rgba(74,222,128,.9);opacity:${draw}">${mark(true, 60)}<div><div style="font-size:32px;font-weight:700;color:${G}">Verified</div><div style="font-size:21px;color:${M}">Kane passed it</div></div></div>`;
+    const fail = eo(p(u, d - 4.2, d - 3.2));
+    h += `<div class="card" style="left:1330px;top:490px;width:440px;padding:24px 28px;display:flex;align-items:center;gap:20px;border-color:rgba(248,113,113,${.15 + fail * .5});box-shadow:0 0 ${fail * 80}px -20px rgba(248,113,113,.9);opacity:${draw * (.45 + fail * .55)}">${mark(false, 60)}<div><div style="font-size:32px;font-weight:700;color:${R}">Stays a failure</div><div style="font-size:21px;color:${M}">however confident the agent is</div></div></div>`;
+    // tokens travelling down each path
+    const tok = (a, b, up) => { const q = eio(p(u, a, b)); if (q <= 0 || q >= 1) return ""; const x = q < .3 ? lerp(1060, 1180, q / .3) : lerp(1180, 1320, (q - .3) / .7); const y = q < .3 ? 425 : lerp(425, up ? 300 : 560, (q - .3) / .7); return `<div class="abs" style="left:${x - 14}px;top:${y - 14}px;width:28px;height:28px;border-radius:50%;background:${up ? G : R};box-shadow:0 0 30px ${up ? G : R}"></div>`; };
+    h += tok(4.1, 5.0, true) + tok(d - 4.6, d - 3.4, false);
+    return h;
+  },
+
+  approve(u, d) {
+    let h = `<div class="abs" style="left:160px;top:120px;${inStyle(show(u, .1))}"><span class="pill">Nothing merges by itself</span></div>`;
+    h += `<div class="card mono" style="left:160px;top:270px;width:760px;padding:30px;font-size:25px;line-height:1.9;${inStyle(show(u, .3), 30)}">
+      <div class="lbl" style="font-family:Geist">The change</div>
+      <div style="margin-top:12px;padding:0 14px;border-radius:8px;background:rgba(248,113,113,.1);color:${R}">− cents += product.priceCents;</div>
+      <div style="padding:0 14px;border-radius:8px;background:rgba(74,222,128,.1);color:${G}">+ cents += product.priceCents * line.qty;</div></div>`;
+    h += person(260, 640, .9, show(u, .8));
+    const pressed = u > 2.6, merged = u > 3.0;
+    h += `<div class="abs" style="left:420px;top:690px;padding:22px 40px;border-radius:999px;font-size:30px;font-weight:700;background:${merged ? G : W};color:#000;transform:scale(${pressed && !merged ? .94 : 1});box-shadow:0 10px 50px -10px ${merged ? "rgba(74,222,128,.8)" : "rgba(255,255,255,.5)"};${inStyle(show(u, 1.1), 20)}">${merged ? "✓ Approved and merged" : "Approve and merge"}</div>`;
+    if (u > 1.4 && u < 3.4) { const q = eio(p(u, 1.4, 2.5)); h += cursor(lerp(900, 640, q), lerp(900, 720, q), pressed && !merged ? 1 : 0); }
+    // branches
+    const b = eo(p(u, 3.0, 4.4));
+    h += `<svg class="abs" style="left:1050px;top:330px;opacity:${show(u, .6)}" width="760" height="420" viewBox="0 0 760 420">
+      <path d="M20 300 H 740" stroke="rgba(255,255,255,.7)" stroke-width="8" stroke-linecap="round"/>
+      <path d="M120 300 C 200 300, 200 140, 300 140 H 460" fill="none" stroke="${G}" stroke-width="8" stroke-linecap="round"/>
+      <path d="M460 140 C 560 140, 560 300, 640 300" fill="none" stroke="${G}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${b * 260} 400"/>
+      ${[120, 300, 460].map(x => `<circle cx="${x}" cy="${x === 120 ? 300 : 140}" r="16" fill="#000" stroke="${x === 120 ? W : G}" stroke-width="6"/>`).join("")}
+      <circle cx="640" cy="300" r="${16 + b * 6}" fill="${b > .95 ? G : "#000"}" stroke="${b > .95 ? G : W}" stroke-width="6"/>
+      <text x="30" y="350" fill="${M}" font-size="26" font-family="Geist Mono">main</text><text x="300" y="110" fill="${G}" font-size="26" font-family="Geist Mono">verified fix</text></svg>`;
+    return h;
+  },
+
+  results(u, d) {
+    const bugs = [["Cart subtotal ignores quantity", "$18.00 for 3 × $18 mugs", "price × quantity"], ["Expired coupon still applies", "OLD20 took 20% off", "expiry is checked"], ["“Order not found” after paying", "no order number shown", "reads the right order id"]];
+    const flipAt = k => 1.4 + k * 1.1;
+    const done = bugs.filter((_, k) => u > flipAt(k) + .35).length;
+    let h = `<div class="abs" style="left:0;right:0;top:150px;text-align:center;${inStyle(show(u, .1))}"><span class="mono" style="font-size:140px;font-weight:600;color:${done === 3 ? G : W};${done === 3 ? "text-shadow:0 0 60px rgba(74,222,128,.6)" : ""}">${done}/3</span>
+      <div style="font-size:30px;color:${M};margin-top:6px">seeded bugs caught, fixed and verified by Kane</div></div>`;
+    bugs.forEach(([name, bad, good], k) => {
+      const f = p(u, flipAt(k), flipAt(k) + .7), side = f > .5, sx = Math.abs(Math.cos(f * Math.PI));
+      h += `<div class="card" style="left:${190 + k * 520}px;top:520px;width:480px;height:260px;padding:30px;transform:scaleX(${sx});border-color:${side ? "rgba(74,222,128,.55)" : "rgba(248,113,113,.5)"};${inStyle(show(u, .4 + k * .2), 30)}">
+        <div style="font-size:27px;font-weight:600;line-height:1.3">${name}</div>
+        <div style="margin-top:28px;display:flex;align-items:center;gap:16px;font-size:26px;color:${side ? G : R}">${mark(side, 46)}${side ? good : bad}</div></div>`;
+    });
+    return h;
+  },
+
+  close(u, d) {
+    const k = back(p(u, .1, 1.1));
+    let h = `<div class="abs" style="left:50%;top:150px;width:300px;height:300px;margin-left:-150px;transform:scale(${k});filter:drop-shadow(0 0 70px rgba(255,255,255,.5))">${BADGE}</div>`;
+    h += `<div class="abs" style="left:0;right:0;top:500px;text-align:center">
+      <div style="font-size:70px;font-weight:600;letter-spacing:-.03em;${inStyle(show(u, .8))}">CheckoutGuard</div>
+      <div style="margin-top:18px;font-size:46px;font-weight:600;line-height:1.2;${inStyle(show(u, 1.6))}">Every checkout tested. <span style="color:${G}">Every fix verified.</span></div>
+      <div class="mono" style="margin-top:40px;font-size:28px;color:${M};${inStyle(show(u, 2.6))}">checkoutguard-eight.vercel.app</div></div>`;
+    return h;
+  },
+};
+
+/* ---------- background: slow light lines ---------- */
+const lines = [];
+for (let i = 0; i < 46; i++) lines.push(i);
+function bg(t) {
+  const cx = 960;
+  return `<defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset=".35" stop-color="#fff" stop-opacity=".05"/><stop offset=".65" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity=".9"/></linearGradient></defs>` +
+    lines.map(i => { const w = 200 + i * 9, A = 700 - i * 9, base = 1120 + i * 2; let pts = []; for (let x = -40; x <= 1960; x += 40) { const dd = (x - cx) / w; pts.push(x + "," + (base - A * (1 - Math.exp(-dd * dd)) + Math.sin(x / 160 + i * .35 + t * .35) * 7).toFixed(1)); } return `<path d="M${pts.join(" L")}" fill="none" stroke="url(#g)" stroke-opacity="${(.03 + .14 * Math.pow(1 - i / 46, 1.4)).toFixed(3)}" stroke-width="1.2"/>`; }).join("");
+}
+
+window.DURATION = window.TOTAL;
+function render(t) {
+  document.getElementById("bg").innerHTML = bg(t);
+  const s = window.SCENES.find(x => t >= x.start && t < x.end) || window.SCENES[window.SCENES.length - 1];
+  const u = t - s.start, d = s.end - s.start;
+  const fade = Math.min(cl(u / .45), cl((d - u) / .45));
+  const st = document.getElementById("stage");
+  st.style.opacity = s.id === "close" ? Math.min(cl(u / .45), cl((window.TOTAL - t) / 1.2)) : fade;
+  st.innerHTML = SCENE[s.id](u, d);
+  const c = window.CAPTIONS.find(x => t >= x.start && t < x.end);
+  document.getElementById("cap").innerHTML = c ? `<span style="opacity:${Math.min(cl((t - c.start) / .25), cl((c.end - t) / .25))}">${c.text}</span>` : "";
+}
+window.render = render;
+</script></body></html>

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Lily's narration for the CheckoutGuard demo video, from ElevenLabs.
 
-usage: python3 -I video/narrate.py WORK_DIR
+usage: python3 -I video/narrate.py WORK_DIR [SCRIPT.json]   (default: video/demo.json)
 
 Writes WORK_DIR/voice/<line id>.mp3 and WORK_DIR/voice.json (each line's file and length in seconds).
 The key comes from ELEVENLABS_API_KEY, ~/sealr/assets/video/.env or ~/confidant/video/.env, and is never printed.
@@ -51,7 +51,7 @@ def seconds(path):
 
 def main():
     work = Path(sys.argv[1])
-    spec = json.loads((HERE / "demo.json").read_text())
+    spec = json.loads(Path(sys.argv[2] if len(sys.argv) > 2 else HERE / "demo.json").read_text())
     voice = spec["voice"]
     key = load_key()
     (work / "voice").mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,14 @@
+{
+ "voice": { "name": "Lily (ElevenLabs)", "elevenlabs_voice_id": "pFZP5JQG7iQjIQuC4Bku", "model_id": "eleven_v3", "settings": { "stability": 0.5, "similarity_boost": 0.8 } },
+ "lines": [
+  { "id": "cost", "min": 9, "text": "Every broken checkout costs a sale. A customer adds three mugs, the cart says eighteen dollars instead of fifty-four, and they leave." },
+  { "id": "ships", "min": 8, "text": "Bugs like this ship because the tests pass, and nobody clicks through the whole journey. And coding agents say done the moment their tests go green." },
+  { "id": "idea", "min": 6, "text": "CheckoutGuard changes who decides. Not the agent. A real browser." },
+  { "id": "kane", "min": 9, "text": "First, Kane CLI tests the checkout in real Chrome, step by step, like a customer. When something's wrong, it fails the journey, and explains why." },
+  { "id": "agent", "min": 9, "text": "That evidence goes to a coding agent, boxed in: its own copy of the code, no shell, no web, and no way to touch the tests." },
+  { "id": "verify", "min": 10, "text": "Then Kane runs the exact same journey again. If it passes, the fix is verified. If it fails, it stays a failure, however confident the agent is." },
+  { "id": "approve", "min": 6, "text": "And nothing merges by itself. A person reviews the change, and approves it." },
+  { "id": "results", "min": 8, "text": "On our demo store, Kane caught all three seeded checkout bugs. The agent fixed all three, and Kane verified every fix." },
+  { "id": "close", "min": 6, "text": "CheckoutGuard. Every checkout tested. Every fix verified." }
+ ]
+}
