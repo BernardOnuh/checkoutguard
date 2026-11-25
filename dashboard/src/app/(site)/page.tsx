@@ -2,6 +2,7 @@
 // beam, the loop as an orbit, proof cards that play out real Kane CLI results, the agent's sandbox, install, and a
 // closing call to action. Every scene plays by itself once it's on screen.
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 import { ArrowRight, GitBranch, GitMerge, Github, Lock, ShieldCheck, Terminal } from "lucide-react";
 import { CountUp, Reveal, WordsIn } from "@/components/landing/motion";
 import { HeroStage, LoopOrbit, ProofCard, Sandbox } from "@/components/landing/scenes";
@@ -29,10 +30,7 @@ export default function Home() {
       {/* header */}
       <header className="fixed inset-x-0 top-0 z-30 border-b border-white/5 bg-bg/60 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-violet-500 via-indigo-500 to-cyan-400 shadow-[0_0_24px_-4px_rgb(139_92_246/0.8)]"><ShieldCheck className="h-5 w-5 text-white" strokeWidth={2.4} /></span>
-            <span className="text-[17px] font-bold tracking-tight">Checkout<span className="grad-text">Guard</span></span>
-          </Link>
+          <Logo href="/" />
           <nav className="hidden items-center gap-7 text-sm text-mute md:flex">
             <a href="#loop" className="transition hover:text-ink">The loop</a>
             <a href="#proof" className="transition hover:text-ink">Proof</a>

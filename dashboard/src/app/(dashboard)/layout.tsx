@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
+import { Logo } from "@/components/logo";
 import { runner } from "@/lib/runner";
 import { TesterTag } from "@/components/ui";
 
@@ -10,12 +10,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <>
         <header className="sticky top-0 z-20 border-b border-line bg-bg/70 backdrop-blur-xl">
           <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-            <Link href="/app" className="flex items-center gap-3">
-              <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-violet-500 via-indigo-500 to-cyan-400 shadow-[0_0_24px_-4px_rgb(139_92_246/0.8)]">
-                <ShieldCheck className="h-5 w-5 text-white" strokeWidth={2.4} />
-              </span>
-              <span className="text-[17px] font-bold tracking-tight">Checkout<span className="grad-text">Guard</span></span>
-            </Link>
+            <Logo href="/app" />
             <div className="flex items-center gap-3 text-xs text-mute">
               <Link href="/" className="hidden font-semibold text-mute transition hover:text-ink sm:inline">Home</Link>
               <span className="hidden h-4 w-px bg-line sm:block" />
