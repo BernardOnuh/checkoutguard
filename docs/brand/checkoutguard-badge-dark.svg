@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <path id="top" d="M 40,100 A 60,60 0 0 1 160,100"/>
+    <path id="bot" d="M 24,100 A 76,76 0 0 0 176,100"/>
+  </defs>
+  <circle cx="100" cy="100" r="96" fill="#000"/>
+  <circle cx="100" cy="100" r="89" fill="none" stroke="#fff" stroke-width="1.6" stroke-opacity=".35"/>
+  <g fill="#fff" font-family="Geist, Inter, Arial, sans-serif" font-weight="800" font-size="21" letter-spacing="3.2">
+    <text><textPath href="#top" startOffset="50%" text-anchor="middle">CHECKOUT</textPath></text>
+    <text><textPath href="#bot" startOffset="50%" text-anchor="middle">GUARD</textPath></text>
+  </g>
+  <g fill="#fff"><path d="M28 100l2.4 5 5.4.6-4 3.7 1.1 5.3-4.9-2.7-4.9 2.7 1.1-5.3-4-3.7 5.4-.6z" transform="translate(0 -7)"/><path d="M172 100l2.4 5 5.4.6-4 3.7 1.1 5.3-4.9-2.7-4.9 2.7 1.1-5.3-4-3.7 5.4-.6z" transform="translate(0 -7)"/></g>
+  <g fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M64 72 A 46 46 0 0 1 136 72"/><path d="M64 128 A 46 46 0 0 0 136 128"/></g>
+  <path d="M84 92 v-9 a16 16 0 0 1 32 0 v9" fill="none" stroke="#fff" stroke-width="7"/>
+  <rect x="74" y="90" width="52" height="38" rx="7" fill="#fff"/>
+  <path d="m88 109 8 8 16-17" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
