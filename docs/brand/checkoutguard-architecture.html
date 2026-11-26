@@ -1,0 +1,67 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:1600px;height:900px;background:#000;color:#f5f5f5;font-family:Geist,system-ui,sans-serif;position:relative;overflow:hidden}
+h1{position:absolute;left:60px;top:44px;font-size:34px;font-weight:600;letter-spacing:-.02em}
+h1 span{color:#8a8a8a}
+.sub{position:absolute;left:60px;top:92px;font-size:17px;color:#8a8a8a}
+.box{position:absolute;border-radius:18px;border:1.5px solid rgba(255,255,255,.16);background:linear-gradient(#151515,#0b0b0b);padding:16px 18px}
+.box .t{font-size:19px;font-weight:600}.box .d{margin-top:5px;font-size:14px;line-height:1.4;color:#9a9a9a}
+.tag{display:inline-block;margin-top:8px;font-family:'Geist Mono',monospace;font-size:12px;color:#cfcfcf;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:2px 8px}
+.zone{position:absolute;border-radius:24px;border:1.5px dashed rgba(255,255,255,.22)}
+.zl{position:absolute;font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#8a8a8a;background:#000;padding:0 10px}
+.kane{border-color:rgba(255,255,255,.55);box-shadow:0 0 50px -16px rgba(255,255,255,.6)}
+.red{border-color:rgba(248,113,113,.6)} .green{border-color:rgba(74,222,128,.65)}
+svg{position:absolute;inset:0}
+.lab{position:absolute;font-family:'Geist Mono',monospace;font-size:13px;color:#bdbdbd;background:#000;padding:1px 6px}
+.legend{position:absolute;right:60px;top:52px;display:flex;gap:22px;font-size:14px;color:#9a9a9a}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:7px;vertical-align:-1px}
+</style></head><body>
+<h1>CheckoutGuard <span>architecture</span></h1>
+<div class="sub">Everything runs on the developer's machine. Kane CLI decides; the agent never does.</div>
+<div class="legend"><span><i style="background:#f87171"></i>failure path</span><span><i style="background:#4ade80"></i>verified path</span></div>
+
+<div class="zone" style="left:40px;top:150px;width:1520px;height:700px"></div><div class="zl" style="left:70px;top:141px">Developer's machine (127.0.0.1 only)</div>
+<div class="zone" style="left:860px;top:430px;width:670px;height:270px;border-color:rgba(248,113,113,.4)"></div><div class="zl" style="left:885px;top:421px;color:#fca5a5">Isolated git worktree · sandbox</div>
+
+<div class="box" style="left:80px;top:200px;width:300px"><div class="t">Dashboard</div><div class="d">Journeys, Kane evidence, repair timeline, diff. Approve or discard.</div><span class="tag">Next.js · localhost:3100</span></div>
+<div class="box" style="left:80px;top:420px;width:300px"><div class="t">👤 Person</div><div class="d">Reviews the diff and Kane's before and after. The only one who can merge.</div></div>
+<div class="box" style="left:80px;top:640px;width:300px"><div class="t">Run history</div><div class="d">Runs → failures → repair attempts → verifications, plus evidence packs.</div><span class="tag">SQLite · data/</span></div>
+
+<div class="box" style="left:470px;top:330px;width:320px;height:170px"><div class="t">Runner</div><div class="d">Orchestrates the loop: test, evidence, repair, unit gate, rerun, verdict. Caps attempts at 2.</div><span class="tag">Node 22 · runner/src</span></div>
+
+<div class="box kane" style="left:900px;top:190px;width:300px"><div class="t">Kane CLI</div><div class="d">Runs each plain-English objective in real Chrome. Its run_end is the verdict.</div><span class="tag">kane-cli run --agent</span></div>
+<div class="box" style="left:1250px;top:190px;width:270px"><div class="t">Demo store</div><div class="d">Northwind Goods, 3 seeded checkout bugs. Fake payments only.</div><span class="tag">store/ · :4300</span></div>
+
+<div class="box red" style="left:900px;top:470px;width:300px"><div class="t">🤖 Claude Code</div><div class="d">Reads Kane's evidence, edits store/src only. No shell, no web.</div><span class="tag">file tools only</span></div>
+<div class="box" style="left:1250px;top:470px;width:250px"><div class="t">Patched store</div><div class="d">Started on its own port for the unit gate and Kane's rerun.</div></div>
+<div class="box" style="left:900px;top:610px;width:600px;padding:12px 18px"><div class="d" style="margin:0;color:#fca5a5">✕ Patch touching tests/ or scenarios/ → rejected before it runs &nbsp; ✕ any unit regression → rejected</div></div>
+
+<div class="box green" style="left:470px;top:640px;width:320px"><div class="t" style="color:#4ade80">🛡 Verified</div><div class="d">Only when Kane passes the same journey on the patched store.</div></div>
+
+<svg viewBox="0 0 1600 900">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#bdbdbd"/></marker>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#f87171"/></marker>
+<marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4ade80"/></marker></defs>
+<g fill="none" stroke-width="2.2">
+<path d="M380 260 C 430 260, 430 360, 468 370" stroke="#bdbdbd" marker-end="url(#a)"/>
+<path d="M790 360 C 840 330, 840 250, 898 245" stroke="#bdbdbd" marker-end="url(#a)"/>
+<path d="M1200 250 H 1248" stroke="#bdbdbd" marker-end="url(#a)"/>
+<path d="M898 280 C 840 300, 830 400, 792 410" stroke="#f87171" marker-end="url(#ar)"/>
+<path d="M790 450 C 840 470, 850 520, 898 525" stroke="#f87171" marker-end="url(#ar)"/>
+<path d="M1200 530 H 1248" stroke="#bdbdbd" marker-end="url(#a)"/>
+<path d="M1100 312 C 1150 360, 1375 380, 1375 466" stroke="#bdbdbd" stroke-dasharray="6 6" marker-end="url(#a)"/>
+<path d="M630 500 V 636" stroke="#4ade80" marker-end="url(#ag)"/>
+<path d="M468 690 C 420 690, 420 520, 382 500" stroke="#4ade80" marker-end="url(#ag)"/>
+<path d="M468 470 C 430 520, 420 650, 382 690" stroke="#bdbdbd" marker-end="url(#a)"/>
+</g></svg>
+<span class="lab" style="left:395px;top:290px">start test / repair</span>
+<span class="lab" style="left:806px;top:255px">1 · objective</span>
+<span class="lab" style="left:785px;top:360px;color:#fca5a5">2 · bug + evidence</span>
+<span class="lab" style="left:800px;top:500px;color:#fca5a5">3 · brief</span>
+<span class="lab" style="left:1220px;top:380px">5 · Kane reruns</span>
+<span class="lab" style="left:640px;top:560px;color:#86efac">6 · Kane passed</span>
+<span class="lab" style="left:388px;top:590px;color:#86efac">7 · approve</span>
+<span class="lab" style="left:1205px;top:555px">4 · unit gate</span>
+</body></html>

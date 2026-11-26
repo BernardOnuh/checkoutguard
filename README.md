@@ -48,6 +48,12 @@ flowchart LR
 | 5 | **Kane reruns** | The same objective on the patched store. **Only a Kane pass marks the repair verified.** |
 | 6 | **You approve** | Review the diff and Kane's before and after, then merge or discard. Nothing merges on its own. |
 
+### Architecture
+
+<img src="docs/images/architecture.jpg" alt="CheckoutGuard architecture: dashboard, runner, Kane CLI, the demo store, Claude Code in an isolated worktree, the unit gate, Kane's rerun and human approval" width="100%" />
+
+The deck is also available as a [PDF](docs/CheckoutGuard-deck.pdf).
+
 ## 🎬 See it in action
 
 A real run on the demo store, **Northwind Goods**.
